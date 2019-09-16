@@ -1,0 +1,38 @@
+set anchor1 a111
+set anchor2 a222
+
+proc calc_colvar_forces { ts } {
+global anchor1 anchor2
+
+set list [cv list]
+set list [lreplace $list 0 1]
+#print $list
+
+set i 1
+set minV [lindex $list 0]
+set minC $i
+
+foreach colv $list {
+set col [ expr abs([cv colvar $colv value])]
+if {$col < $minV} {
+set minV $col
+set minC $i
+#print $minV $minC
+}
+incr i
+}
+
+if {$minC != $anchor1 && $minC != $anchor2} {
+print $ts $minC $minV
+cv printframe
+cv save stop
+print "hit new milestone"
+#### pick exit command depands on the cluster ###
+exit
+#################################################
+#set process [pid]
+#exec kill -9 $process
+#################################################
+}
+}
+

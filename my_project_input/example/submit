@@ -1,0 +1,11 @@
+#!/bin/bash
+#$ -N name
+#$ -l source
+#$ -pe make 2
+#$ -S /bin/bash
+#$ -o a.out
+#$ -e a.err
+
+cd path
+
+/home/weiw/NAMD/NAMD/namd2 +p2 namd > 1.log 
