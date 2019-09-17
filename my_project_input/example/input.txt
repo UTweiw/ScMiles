@@ -50,3 +50,6 @@ username weiw
 # random seed
 seed 12345
 
+
+# custom NAMD configuration
+namd_conf_custom on

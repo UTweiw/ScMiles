@@ -24,6 +24,7 @@ class parameters:
                  startTraj=None, trajPerLaunch=None, interval=None,
                  nframe=None, structure=None, coordinates=None, finished_constain=None,
                  outputname=None,
+                 namd_conf=None,
                  AnchorPath=None, AnchorNum=None,  
                  jobsubmit=None, jobcheck=None,anchors=None,
                  atomNumbers=None, error=None, MFPT=None, kij=None, index=None,
@@ -78,6 +79,8 @@ class parameters:
         self.product = product       # voronoi cell for product
          
         self.MFPT = MFPT       
+        
+        self.namd_conf = False       # additional modification required for NAMD configuration
         
         self.colvarsNum = colvarsNum  # number of colvars, used for read command
         
@@ -237,7 +240,10 @@ class parameters:
                 if "username" in line:
                     self.username = str(info[1])
 
-          
+                if "namd_conf_custom" in line:
+                    if str(info[1]).lower() == 'true' or 'yes' or 'on':
+                        self.namd_conf = True
+                    
         self.trajWidths = [13]
         for i in range(self.colvarsNum + self.AnchorNum):
             self.trajWidths.append(23)

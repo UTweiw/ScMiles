@@ -14,6 +14,8 @@ import subprocess
 from shutil import copyfile
 #from find_milestone import *
 #from milestones import *
+from namd_conf_custom import *
+
 
 class run:
     
@@ -158,6 +160,8 @@ class run:
     def __prepare_namd(self, template, a1=None, a2=None, snapshot=None,frame=None, initial=None, initialNum=None):
         from fileinput import FileInput
         from random import randrange as rand 
+        
+        inputdir = template
         
         if snapshot != None:
             template = template + "/free.namd"   
@@ -356,7 +360,11 @@ class run:
                 
                 line = " ".join(str(x) for x in info)
                 print(line)
-
+        
+        if filename == "/sample.namd" and self.parameter.namd_conf == True:
+            namd_conf_mod(inputdir, newNamd, a1)
+            
+        
 def get_initial_ms(path):
     import re
     path_split = path.split("/")
