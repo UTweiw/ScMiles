@@ -1,0 +1,4 @@
+*.DS_Store
+
+my_project_output/
+crd/

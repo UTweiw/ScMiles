@@ -278,7 +278,8 @@ class parameters:
         if os.path.exists(logname):
             os.remove(logname)
         log("Initialized with {} anchors.".format(self.AnchorNum))
-            
+#        print(self.namd_conf ) 
+        
 if __name__ == '__main__':
     new = parameters()
     new.initialize()
