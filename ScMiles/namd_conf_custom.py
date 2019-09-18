@@ -19,14 +19,17 @@ def namd_conf_mod(inputdir, newNamd, anchor):
         for line in f:
             line = line.strip()
             info = line.split()
-            if "cellbasisvector1" in line:
+            if info == []:
+                continue
+            if info[0].lower() == "cellbasisvector1":
                 info[1] = vector[0]
-            if "cellbasisvector2" in line:
+            if info[0].lower() == "cellbasisvector2":
                 info[2] = vector[1]
-            if "cellbasisvector3" in line:
+            if info[0].lower() == "cellbasisvector3":
                 info[3] = vector[2]
-            if "cellorigin" in line:
+            if info[0].lower() == "cellorigin":
                 info[1:4] = origin
+                
             line = " ".join(str(x) for x in info)
             print(line)
                 
@@ -44,8 +47,10 @@ def namd_conf_read(inputdir,anchor):
                 origin = [x / 2.0 for x in vector]
 #                print(origin)
                 break
+#    print(vector, origin, anchor)
     return vector, origin
 
 
 if __name__ == '__main__':
-    namd_conf_read('.',1)
+    namd_conf_mod('.', 'sample.namd', 1)
+#    namd_conf_read('.',1)
