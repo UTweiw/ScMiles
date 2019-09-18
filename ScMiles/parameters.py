@@ -19,6 +19,7 @@ class parameters:
                  bincoordinates=None, binvelocities=None, extendedSystem=None,
                  customColvars=None,
                  colvarsTrajFrequency=None, colvarsRestartFrequency=None, colvarsNum=None,
+                 forceConst=None,
                  trajWidths=None, username=None, tolerance=None, err_sampling=None,
                  initial_traj=None, initialTime=None,
                  startTraj=None, trajPerLaunch=None, interval=None,
@@ -83,6 +84,8 @@ class parameters:
         self.namd_conf = False       # additional modification required for NAMD configuration
         
         self.colvarsNum = colvarsNum  # number of colvars, used for read command
+        
+        self.forceConst = 1  # force constant for harmonic constrain
         
         self.trajWidths = trajWidths  # width for each traj output, default = 13
         
@@ -195,7 +198,8 @@ class parameters:
                     self.colvarsRestartFrequency = info[1]
                 if "customColvars" in line:
                     self.customColvars = 1 if info[1] == 'yes' or info[1] == 'on' else 0
-
+                if "force_const" in line:
+                    self.forceConst = int(info[1])
                     
                 if "anchorsNum" in line:
                     self.AnchorNum = int(info[1])    

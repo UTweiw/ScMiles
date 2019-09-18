@@ -258,7 +258,7 @@ class colvar:
         if self.parameter.pbc != [] and abs(self.anchor1 - self.anchor2) > 1:
             center = 180
         print("  centers {}".format(center), file=fconf)
-        print("  forceConstant 1.0", file=fconf)
+        print("  forceConstant {}".format(self.parameter.forceConst), file=fconf)
         print("}", file=fconf)
         fconf.close()
         
@@ -327,7 +327,7 @@ class colvar:
         print("  colvars neighbor", file=fconf)
         center = 0
         print("  centers {}".format(str(center)), file=fconf)
-        print("  forceConstant 1.0", file=fconf)
+        print("  forceConstant {}".format(self.parameter.forceConst), file=fconf)
         print("}", file=fconf)
         fconf.close()
         
@@ -338,7 +338,7 @@ class colvar:
         print("harmonicWalls {", file=fconf)
         print("  colvars {}".format(colvarList), file=fconf)
         print("  lowerWalls {}".format(centers), file=fconf)
-        print("  lowerWallConstant 1.0", file=fconf)
+        print("  lowerWallConstant {}".format(self.parameter.forceConst), file=fconf)
         print("}", file=fconf)
         fconf.close()
 
