@@ -27,6 +27,7 @@ class parameters:
                  outputname=None,
                  namd_conf=None,
                  AnchorPath=None, AnchorNum=None,  
+                 new_anchor=None, anchor_dist=None,
                  jobsubmit=None, jobcheck=None,anchors=None,
                  atomNumbers=None, error=None, MFPT=None, kij=None, index=None,
                  flux=None,
@@ -98,6 +99,10 @@ class parameters:
         self.AnchorPath = AnchorPath   # file path for anchor
         
         self.AnchorNum = AnchorNum     # total number of anchor
+        
+        self.new_anchor = False         # find new anchor
+        
+        self.anchor_dist = 100.0          # new anchor seperation distance
             
         self.bincoordinates = bincoordinates  # coordinates file name
         
@@ -203,6 +208,11 @@ class parameters:
                     
                 if "anchorsNum" in line:
                     self.AnchorNum = int(info[1])    
+                if "find_new_anchor" in line:
+                    if str(info[1]).lower() == 'true' or 'yes' or 'on':
+                        self.new_anchor = True
+                if "new_anchor_dist" in line:
+                    self.anchor_dist = float(info[1])         
 #                if "anchorsPath" in line:
 #                    self.AnchorPath = info[1]
                             
