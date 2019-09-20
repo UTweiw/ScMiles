@@ -19,6 +19,13 @@ from milestones import *
 from analysis import analysis_kernel
 from traj import *
 
+# run free trajectories without sampling
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("-s", "--skipSampling", type=bool, help="skip sampling",
+                    required = False, default=False)
+args = parser.parse_args()  
+status = 0 if args.skipSampling == False else True
 
 # initialize environment
 MFPT_temp = 1

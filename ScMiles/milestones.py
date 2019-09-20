@@ -51,6 +51,7 @@ class milestones:
         
 
     def initialize(self, status=0):
+        from sampling import move_restart
         MS_list = set()
         if self.parameter.milestone_search == 0 and status == 0:
             for i in range(1, self.parameter.AnchorNum):
@@ -63,6 +64,7 @@ class milestones:
         elif status == 1:
             MS_list = self.__read_milestone_folder()
             self.parameter.finished_constain = MS_list.copy()
+            move_restart(MS_list)
             return MS_list
         else:
             while True:    
@@ -100,7 +102,7 @@ class milestones:
         final_ms = [0, 0]
         # read state file generated at termination point 
         # smallest rmsd indicates new cell #
-        RMSDs, lifetime = self.__read_state(state)
+        RMSDs, lifetime = self.read_state(state)
         final_ms[0] = RMSDs.index(sorted(RMSDs)[0]) + 1
         
         if self.parameter.pbc != []:
@@ -210,7 +212,7 @@ class milestones:
                     MS_list.add('MS' + name)
         return MS_list
 
-    def __read_state(self, path):
+    def read_state(self, path):
         file = open(path, 'r').read()
         time = int(re.findall(r"[-+]?\d*\.\d+|\d+", file)[0])
 #        print(time)

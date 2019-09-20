@@ -22,7 +22,7 @@ class parameters:
                  forceConst=None,
                  trajWidths=None, username=None, tolerance=None, err_sampling=None,
                  initial_traj=None, initialTime=None,
-                 startTraj=None, trajPerLaunch=None, interval=None,
+                 startTraj=None, trajPerLaunch=None, interval=None, freeTraj_walltime=None,
                  nframe=None, structure=None, coordinates=None, finished_constain=None,
                  outputname=None,
                  namd_conf=None,
@@ -117,6 +117,8 @@ class parameters:
         self.startTraj = startTraj    # initial sampling frame 
         
         self.trajPerLaunch = trajPerLaunch    # number of free trajs to launch each time
+        
+        self.freeTraj_walltime = freeTraj_walltime  # walltime for free trajectories
         
         self.interval = interval    # interval between each frame taken
         
@@ -286,6 +288,15 @@ class parameters:
         outfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
         if not os.path.exists(outfolder):
             os.makedirs(outfolder) 
+            
+        with open(inputfolder + '/free.namd', 'r') as f:   
+            for line in f:
+                info = line.split()
+                if "#" in info:
+                    info  = info[:info.index('#')]
+                if "run" in info:
+                    self.freeTraj_walltime = int(info[1])
+                    break
             
         from log import log
         logname = outputfolder + '/log'

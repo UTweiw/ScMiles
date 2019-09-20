@@ -306,6 +306,8 @@ class traj:
                 if not os.path.exists(path):
                     continue
                 time, final_ms = milestones(self.parameter).get_final_ms(path)
+                if final_ms == [0, 0]:
+                    fail_traj_restart(path)
                 count += 1
                 self.__iteration_prepare(path, final_ms, MSname)
         return count / len(MS_list) + self.parameter.startTraj
@@ -322,7 +324,17 @@ class traj:
         for ms in self.parameter.MS_list:
             globals()[ms] = trajPool(ms)
     
-
+    
+    def fail_traj_restart(self, path):
+        import subprocess
+        state_path = path + '/' + self.parameter.outputname + '.colvars.state'
+        time, final_ms = milestones(self.parameter).read_state(state_path)
+        if time > 0.8 * self.parameter.freeTraj_walltime:
+            return
+        subprocess.run([self.parameter.jobsubmit, path + '/submit'])
+        
+        
+        
 if __name__ == '__main__':
     MS2_3 = trajPool('2_3')
     traj.add_to_trajPool(traj,'MS2_3', '1_2', 'path')
