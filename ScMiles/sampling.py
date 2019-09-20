@@ -80,13 +80,13 @@ class sampling:
                             
             if finished | self.parameter.finished_constain == MS_list:
                 self.parameter.Finished = finished.copy()
-                log("Finished sampling on all milestones")    
+                log("Finished sampling on all milestones.")    
+                log("Ready to launch free trajectories.") 
                 self.move_restart(self.parameter.MS_list)
                 return self.parameter.Finished
             print("Next check in 600 seconds. {}".format(str(datetime.now())))
             time.sleep(600)   #600 seconds
         
-
 
     def move_restart(self, names):
         import os

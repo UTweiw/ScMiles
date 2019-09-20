@@ -22,10 +22,10 @@ from traj import *
 # run free trajectories without sampling
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--skipSampling", type=bool, help="skip sampling",
-                    required = False, default=False)
+parser.add_argument('-s', '--skipSampling', action='store_true', help='skip sampling',
+                    required=False)
 args = parser.parse_args()  
-status = 0 if args.skipSampling == False else True
+status = 1 if args.skipSampling  else 0
 
 # initialize environment
 MFPT_temp = 1
@@ -49,7 +49,8 @@ while True:
     if parameter.MS_list != parameter.finished_constain:
         samples.constrain_to_ms()   # start to constrain
         time.sleep(60)
-        samples.check_sampling()    # check if the samplings are finished
+        
+    samples.check_sampling()    # check if the samplings are finished
 
     # next iteration; for iteration methods
     if parameter.method == 1:
