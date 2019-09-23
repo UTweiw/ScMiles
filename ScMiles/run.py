@@ -209,6 +209,8 @@ class run:
                     continue
                 
                 if "run" in info or 'minimize' in info:
+                    if info[0] == '#':
+                        continue
                     if colvar_commands == False:
                         tmp.append('colvars on\n')
                         info[0] = 'colvarsConfig'

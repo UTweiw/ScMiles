@@ -36,7 +36,7 @@ jobs = run(parameter)
 samples = sampling(parameter, jobs)
 
 # initialize with reading anchor info and identifying milestones 
-parameter.MS_list = milestones(parameter).initialize(status=0)
+parameter.MS_list = milestones(parameter).initialize(status=status)
 
 #initialize iteration number
 parameter.iteration = 0
