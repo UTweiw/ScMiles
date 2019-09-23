@@ -277,6 +277,7 @@ class parameters:
     def initialize(self):
         import pandas as pd
         import os
+        import re
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
         inputfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_input'
         outputfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
@@ -295,7 +296,7 @@ class parameters:
                 if "#" in info:
                     info  = info[:info.index('#')]
                 if "run" in info:
-                    self.freeTraj_walltime = int(info[1])
+                    self.freeTraj_walltime = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     break
             
         from log import log
