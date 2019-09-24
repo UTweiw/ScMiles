@@ -198,7 +198,7 @@ class run:
         colvar_commands = False
         with open(newNamd, 'r') as f:
             for line in f:
-                line = line.lower()
+#                line = line.lower()
                 info = line.split()
                 if "colvars" in info and "on" in info:
                     colvar_commands = True
@@ -281,7 +281,7 @@ class run:
         with FileInput(files=newNamd, inplace=True) as f:
             for line in f:
                 line = line.strip()
-                line = line.lower()
+#                line = line.lower()
                 info = line.split()
                 
                 if "coordinates" in line:
