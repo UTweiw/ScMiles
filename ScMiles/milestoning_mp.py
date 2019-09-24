@@ -76,7 +76,7 @@ def backup(parameter, files: list) -> None:
     from shutil import move, copy
     import os
     scriptPath = os.path.dirname(os.path.abspath(__file__)) 
-    pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
+    pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output/current'
     time = str(datetime.now()).split('.')[0]
     for file in files:
         if os.path.isfile(pardir + file): 
@@ -99,6 +99,9 @@ def milestoning(parameter):
     scriptPath = os.path.dirname(os.path.abspath(__file__)) 
     data_path = os.path.join(scriptPath, os.pardir) + '/crd'
     outputpath = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
+    outputpath = outputpath + '/current'
+    if not os.path.exists(outputpath):
+        os.makedirs(outputpath)
     ms.read_anchors(parameter.AnchorPath)
     
     files = ['/k.txt', '/k_norm.txt', '/life_time.txt', '/info.txt', '/results.txt', '/list.txt', '/ms_index.npy', '/log', '/committor.txt', '/enhanced_count']

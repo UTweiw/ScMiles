@@ -176,7 +176,7 @@ def MFPT2(parameter, k, t):
 def compute(parameter):
     filePath = os.path.dirname(os.path.abspath(__file__))
     path = os.path.abspath(os.path.join(filePath, os.pardir)) + '/my_project_output'
-
+    path = path + '/current'
     filepath_t = path + '/life_time.txt'
     t_raw = pd.read_fwf(filepath_t, header=1).values
 #    t = (t_raw[0, :]/parameter.timeFactor).tolist()
