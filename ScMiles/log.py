@@ -14,7 +14,7 @@ def log(msg):
     import os
     from datetime import datetime
     filePath = os.path.dirname(os.path.abspath(__file__)) 
-    outfolder = os.path.abspath(os.path.join(filePath, os.pardir)) + '/my_project_output'
+    outfolder = os.path.abspath(os.path.join(filePath, os.pardir)) + '/my_project_output/current'
     with open(outfolder+'/log', 'a+') as f1:
         loginfo = str(datetime.now()).split('.')[0] + "    " + msg
         print(loginfo, file=f1)

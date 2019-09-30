@@ -38,13 +38,12 @@ samples = sampling(parameter, jobs)
 # initialize with reading anchor info and identifying milestones 
 parameter.MS_list = milestones(parameter).initialize(status=status)
 
-#initialize iteration number
-parameter.iteration = 0
+##initialize iteration number
+#parameter.iteration = 0
 
 while True:
     free_trajs = traj(parameter, jobs)
     
-#    print(parameter.MS_list)
     # apply harmonic constraints that populate samples at each milestones.
     if parameter.MS_list != parameter.finished_constain:
         samples.constrain_to_ms()   # start to constrain
@@ -55,9 +54,6 @@ while True:
     # next iteration; for iteration methods
     if parameter.method == 1:
         parameter.iteration += 1 
-        print("Iteration # {}".format(parameter.iteration))
-        log("Iteration # {}".format(parameter.iteration))
-        free_trajs.iteration_initialize()
     else:
         parameter.iteration = 1 
             

@@ -51,6 +51,8 @@ def k_error(k_count):
             a = k_count[i,j]
             if i == j or a == 0:
                 continue
+            if total == a:
+                k[i, j] = 1.0
 #            print(total,a)
             b = total - a
             if b > 0: 
@@ -87,7 +89,7 @@ def flux(k):
     kk_trans = np.transpose(kk)
     e_v, e_f = np.linalg.eig(kk_trans)
 #    print(e_v)
-#    print(e_f[:,1])
+#    print(e_f[:,0])
     idx = np.abs(e_v - 1).argmin()  
     q = [i.real for i in e_f[:, idx]]
     q = np.array(q)
@@ -199,8 +201,16 @@ def compute(parameter):
     get_boundary(parameter, ms_list)
     
     kk = k_average(np.array(kk))
+    
+    kk_cyc = k.copy()
+    for i in parameter.product_milestone:
+        kk_cyc[i] = [0 for j in k[i]]
+        for j in parameter.reactant_milestone:
+            kk_cyc[i][j] = 1.0 / len(parameter.reactant_milestone)   
+    q_cyc = flux(kk_cyc)
+    
     q = flux(kk)
-    parameter.flux = q.copy()
+#    parameter.flux = q.copy()
     p = prob(q,tt)
     energy = free_energy(p)
     tau1 = MFPT(parameter, kk, tt)
@@ -241,7 +251,7 @@ def compute(parameter):
                 else:
                     break
             print('{:4d} {:4d} {:10.5f} {:8.5f} {:10.5f} {:10.5f}'.format(ms_list[keyIndex][0], ms_list[keyIndex][1], 
-                  q[i], p[i], energy[i], energy_err[i]), file=f1)
+                  q_cyc[i], p[i], energy[i], energy_err[i]), file=f1)
             keyIndex += 1  
         print('\n\n',file=f1)
         print("MFPT is {:15.8e}, with an error of {:15.8e}, from eigenvalue method.".format(tau1, MFPT_err),file=f1)  
@@ -261,7 +271,11 @@ def compute(parameter):
         parameter.MFPT = 0
         
 #    voronoi_plot(parameter, m, c, energy, ms_list)
+    index = []
+    for i in range(len(ms_list)):
+        index.append(ms_list[i])
 
+    return k, index, q_cyc
 
 if __name__ == '__main__':
     from parameters import *

@@ -1,5 +1,11 @@
 *.DS_Store
 
+k*.txt
+life_time.txt
+log
+*.npy
+results.txt
+
 my_project_output/
 crd/
 __pycache__/

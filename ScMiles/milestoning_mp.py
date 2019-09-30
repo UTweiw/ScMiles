@@ -76,20 +76,20 @@ def backup(parameter, files: list) -> None:
     from shutil import move, copy
     import os
     scriptPath = os.path.dirname(os.path.abspath(__file__)) 
-    pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output/current'
+    pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
     time = str(datetime.now()).split('.')[0]
     for file in files:
         if os.path.isfile(pardir + file): 
-            if not os.path.exists(pardir + '/results'):
-                os.makedirs(pardir + '/results')
-            backup_Folder = pardir + '/results/' + str(parameter.iteration) + '_' + time
+#            if not os.path.exists(pardir + '/results'):
+#                os.makedirs(pardir + '/results')
+            backup_Folder = pardir + '/' + str(parameter.iteration) + '_' + time
             if not os.path.exists(backup_Folder):
                 os.makedirs(backup_Folder)
                 
-            if file == '/log':
-                copy(pardir + file, backup_Folder + file)
-            else:
-                move(pardir + file, backup_Folder + file)
+#            if file == '/log':
+            copy(pardir + file, backup_Folder + file)
+#            else:
+#                move(pardir + file, backup_Folder + file)
         
 
 def milestoning(parameter):
@@ -241,10 +241,10 @@ def milestoning(parameter):
         f1.write('\n'.join([''.join(['{:10.5f}'.format(item) for item in row])for row in k_ave]))   
     np.save(outputpath + '/ms_index.npy', ms.ms_index)   
     
-    parameter.kij = k_ave.copy()
-    parameter.index = []
-    for i in range(len(ms.ms_index)):
-        parameter.index.append(ms.ms_index[i])
+#    parameter.kij = k_ave.copy()
+#    parameter.index = []
+#    for i in range(len(ms.ms_index)):
+#        parameter.index.append(ms.ms_index[i])
     
 #    with open(outputpath + '/enhanced_count', 'w+') as f1:
 #        for i in enhanced_count:

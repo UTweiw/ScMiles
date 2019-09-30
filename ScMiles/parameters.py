@@ -166,6 +166,8 @@ class parameters:
                 if "method" in info:
                     self.method = int(info[1])
                            
+                if "intitial_iteration" in info:
+                    self.iteration = int(info[1]) - 1
                 if "max_iteration" in info:
                     self.maxIteration = int(info[1])
                 
