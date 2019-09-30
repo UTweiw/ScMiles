@@ -155,8 +155,8 @@ def milestoning(parameter):
         if start == end or end == [0,0]:
             continue
         
-        if parameter.ignorNewMS and 'MS' + str(start[0]) + '_' + str(start[1]) not in parameter.MS_list:
-            continue
+#        if parameter.ignorNewMS and 'MS' + str(start[0]) + '_' + str(start[1]) not in parameter.MS_list:
+#            continue
         
         if str(start[0]) + '_' + str(start[1]) not in parameter.network.keys():
             parameter.network[str(start[0]) + '_' + str(start[1])] = set()
@@ -177,8 +177,8 @@ def milestoning(parameter):
             continue
         
         name_dest = 'MS' + str(anchor_dest[0][0]) + '_' + str(anchor_dest[0][1])
-        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
-            continue
+#        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
+#            continue
         for i in range(len(anchor_orig)):    
             name_orig = str(anchor_orig[i][0]) + '_' + str(anchor_orig[i][1])
             name_dest = str(anchor_dest[i][0]) + '_' + str(anchor_dest[i][1])

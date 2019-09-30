@@ -309,7 +309,8 @@ class traj:
 #                if final_ms == [0, 0]:
 #                    fail_traj_restart(path)
                 count += 1
-                self.__iteration_prepare(path, final_ms, MSname)
+                if self.parameter.method == 1:
+                    self.__iteration_prepare(path, final_ms, MSname)
         return count / len(MS_list) + self.parameter.startTraj
     
     

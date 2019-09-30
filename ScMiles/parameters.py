@@ -60,7 +60,7 @@ class parameters:
         
         self.MS_list = set()    # milestone list
         
-        self.ignorNewMS = True    # ignore new milestones found by free traj
+        self.ignorNewMS = False    # ignore new milestones found by free traj
         
         self.Finished = set()   # milestones that finished free trajs
         
