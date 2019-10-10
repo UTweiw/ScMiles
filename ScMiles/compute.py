@@ -192,7 +192,7 @@ def compute(parameter):
     kc = [[float(j) for j in i] for i in kc_raw[0:dimension,0:dimension].tolist()]
     k = k_average(np.array(kc))
 ######################
-    ms_list = np.load(path + '/ms_index.npy').item()
+    ms_list = np.load(path + '/ms_index.npy', allow_pickle=True).item()
     
     kk = k.copy()
     tt = t.copy()
