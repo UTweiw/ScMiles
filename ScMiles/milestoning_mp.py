@@ -87,7 +87,8 @@ def backup(parameter, files: list) -> None:
                 os.makedirs(backup_Folder)
                 
 #            if file == '/log':
-            copy(pardir + file, backup_Folder + file)
+            copy(pardir + '/current' + file, backup_Folder + file)
+#             pardir + file = .../my_project_output + /current + /k.txt
 #            else:
 #                move(pardir + file, backup_Folder + file)
         
@@ -260,8 +261,8 @@ if __name__ == '__main__':
     new = parameters()
     new.initialize()
 #    new.nframe = 1000
-    new.MS_list = ['MS1_2','MS2_3','MS3_4','MS4_5','MS5_6','MS6_7','MS7_8','MS8_9','MS9_10','MS10_11','MS11_12',#[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],\
-               'MS1_12']#[3,8],[4,8],[5,7],[5,8],[7,9],[8,10],[8,11]]
+#    new.MS_list = ['MS1_2','MS2_3','MS3_4','MS4_5','MS5_6','MS6_7','MS7_8','MS8_9','MS9_10','MS10_11','MS11_12',#[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],\
+#               'MS1_12']#[3,8],[4,8],[5,7],[5,8],[7,9],[8,10],[8,11]]
     new.iteration = 1
     milestoning(new)
 #print(ms)

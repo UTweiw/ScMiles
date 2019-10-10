@@ -86,6 +86,12 @@ def committor(parameter, k):
 
 def flux(k):
     kk = k.copy()
+    
+#    kk[0] = [0 for i in kk[0]]
+#    kk[0][1] = kk[0][-1] = 0.5
+#    kk[-1] = [0 for i in kk[-1]]
+#    kk[-1][-2] = kk[-1][0] = 0.5
+    
     kk_trans = np.transpose(kk)
     e_v, e_f = np.linalg.eig(kk_trans)
 #    print(e_v)
@@ -209,7 +215,7 @@ def compute(parameter):
             kk_cyc[i][j] = 1.0 / len(parameter.reactant_milestone)   
     q_cyc = flux(kk_cyc)
     
-    q = flux(kk)
+    q = flux(kk)    
 #    parameter.flux = q.copy()
     p = prob(q,tt)
     energy = free_energy(p)
@@ -221,7 +227,7 @@ def compute(parameter):
     MFPT2_samples = []
     energy_err = []
     MFPT_err = []
-    MFPT_err2 = []
+    MFPT_err2 = []    
     
     for i in range(parameter.err_sampling):
         k_err = k_error(np.mat(kc))
@@ -251,7 +257,7 @@ def compute(parameter):
                 else:
                     break
             print('{:4d} {:4d} {:10.5f} {:8.5f} {:10.5f} {:10.5f}'.format(ms_list[keyIndex][0], ms_list[keyIndex][1], 
-                  q_cyc[i], p[i], energy[i], energy_err[i]), file=f1)
+                  q[i], p[i], energy[i], energy_err[i]), file=f1)
             keyIndex += 1  
         print('\n\n',file=f1)
         print("MFPT is {:15.8e}, with an error of {:15.8e}, from eigenvalue method.".format(tau1, MFPT_err),file=f1)  
