@@ -79,7 +79,7 @@ def backup(parameter, files: list) -> None:
     pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
     time = str(datetime.now()).split('.')[0]
     for file in files:
-        if os.path.isfile(pardir + file): 
+        if os.path.isfile(pardir + '/current' + file): 
 #            if not os.path.exists(pardir + '/results'):
 #                os.makedirs(pardir + '/results')
             backup_Folder = pardir + '/' + str(parameter.iteration) + '_' + time

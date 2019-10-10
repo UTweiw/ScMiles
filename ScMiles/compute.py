@@ -288,6 +288,6 @@ if __name__ == '__main__':
     new = parameters()
     new.initialize()
     new.iteration = 1
-    from milestones import milestones
+#    from milestones import milestones
     compute(new)
     print('{:e}'.format(new.MFPT))
