@@ -9,3 +9,9 @@ results.txt
 my_project_output/
 crd/
 __pycache__/
+
+my_project_input/*
+
+input.txt
+log
+

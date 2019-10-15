@@ -134,6 +134,7 @@ class milestones:
             with open(final_info, 'w+') as f1:
                 print(final_ms[0], final_ms[1], file=f1)    
         time_info = path + '/lifetime.txt'
+        lifetime *= self.parameter.timeFactor
         if not os.path.isfile(time_info):
             with open(time_info, 'w+') as f1:
                 print(lifetime, file=f1)    

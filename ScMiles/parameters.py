@@ -297,13 +297,10 @@ class parameters:
         with open(inputfolder + '/free.namd', 'r') as f:   
             for line in f:
                 info = line.split("#")[0].split()
-#                if "#" in info:
-#                    info  = info[:info.index('#')]
                 if "run" in info:
                     self.freeTraj_walltime = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     break
                 if "timestep" in info:
-                    print(info)
                     try: 
                         self.timeFactor = float(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     except:
