@@ -118,8 +118,11 @@ class run:
             for line in f:
                 line = line.strip()
 #                line = line.lower()
-                info = line.split()
-                
+#                info = line.split()
+                info = line.split("#")[0].split()
+                if info == []:
+                    continue
+                                  
                 if "source" in line:
                     if self.parameter.nodes != []:
                         import numpy as np
@@ -199,7 +202,9 @@ class run:
         with open(newNamd, 'r') as f:
             for line in f:
 #                line = line.lower()
-                info = line.split()
+                info = line.split("#")[0].split()
+                if info == []:
+                    continue                
                 if "colvars" in info and "on" in info:
                     colvar_commands = True
                 if "colvarsConfig" in info and colvar_commands == True:
@@ -212,8 +217,8 @@ class run:
                     continue
                 
                 if "run" in info or 'minimize' in info:
-                    if info[0] == '#':
-                        continue
+#                    if info[0] == '#':
+#                        continue
                     if colvar_commands == False:
                         tmp.append('colvars on\n')
                         info[0] = 'colvarsConfig'

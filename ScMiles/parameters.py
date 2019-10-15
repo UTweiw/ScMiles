@@ -48,6 +48,8 @@ class parameters:
         
         self.current_iteration_time = {} # current iteration time
         
+        self.timeFactor = 1 # fs per step
+        
         self.jobsubmit = jobsubmit    # command for job submission
         
         self.jobcheck = jobcheck    # command for job check 
@@ -294,12 +296,18 @@ class parameters:
             
         with open(inputfolder + '/free.namd', 'r') as f:   
             for line in f:
-                info = line.split()
-                if "#" in info:
-                    info  = info[:info.index('#')]
+                info = line.split("#")[0].split()
+#                if "#" in info:
+#                    info  = info[:info.index('#')]
                 if "run" in info:
                     self.freeTraj_walltime = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     break
+                if "timestep" in info:
+                    print(info)
+                    try: 
+                        self.timeFactor = float(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
+                    except:
+                        continue
             
         from log import log
         logname = outputfolder + '/log'
@@ -312,8 +320,8 @@ if __name__ == '__main__':
     new = parameters()
     new.initialize()
 
-#    print(new.timeFactor)
+    print(new.timeFactor)
 #    print(type(new.tolerance))
-    print(new.anchors)
+#    print(new.anchors)
 #    print(type(new.trajPerLaunch))
 #    print(new.reactant_milestone)
