@@ -290,9 +290,11 @@ class parameters:
         crdfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/crd'
         if not os.path.exists(crdfolder):
             os.makedirs(crdfolder)
-        outfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
-        if not os.path.exists(outfolder):
-            os.makedirs(outfolder) 
+        if not os.path.exists(outputfolder):
+            os.makedirs(outputfolder) 
+        currentfolder = outputfolder + '/current'
+        if not os.path.exists(currentfolder):
+            os.makedirs(currentfolder)     
             
         with open(inputfolder + '/free.namd', 'r') as f:   
             for line in f:
@@ -307,9 +309,9 @@ class parameters:
                         continue
             
         from log import log
-        logname = outputfolder + '/log'
+        logname = currentfolder + '/log'
         if os.path.exists(logname):
-            os.remove(logname)
+            os.remove(logname)            
         log("Initialized with {} anchors.".format(self.AnchorNum))
 #        print(self.namd_conf ) 
         
