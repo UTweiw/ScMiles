@@ -10,7 +10,7 @@ A milestoning simulation with ScMiles requires the following:
 7.	submit: A bash script template that contains the path for NAMD and defines how many nodes requested for each simulation.</br></br>
 
 ## How to use:</br>
-</br>** A detailed tutorial can be found in tutorial.docx**</br>
+** A detailed tutorial can be found in tutorial.docx**</br></br>
 a)	Create a folder and decompress ScMiles.zip to this folder. After decompression, there should be two subfolders: ScMiles and my_project_input.</br></br>
 b)	Copy .psf and/or other parameter files to my_project_input </br></br>
 c)	Copy the anchor pdb files to my_project_input/pdb/ and rename them with 1.pdb 2.pdb …etc. </br></br>
