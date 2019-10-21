@@ -16,14 +16,18 @@ Note:
     RMSD(x, anchor_a): the root mean square displacement from anchor_a to x
 """
 
+from log import log
 import os
 
 class colvar:
-    def __init__(self, parameter, anchor1=None, anchor2=None, free=None, initial=None, 
+    def __init__(self, parameter, anchor1=None, anchor2=None, 
+                 var1=None, var2=None, free=None, initial=None, 
                  config_path=None):
         self.parameter = parameter
         self.anchor1 = anchor1
         self.anchor2 = anchor2
+        self.var1 = var1
+        self.var2 = var2
         self.free = free
         self.initial = initial
         
@@ -78,6 +82,10 @@ class colvar:
                     count += 1
                 if '}' in line:
                     count -= 1
+                if "name" in line:
+                    info = line.split("#")[0].split()
+                    if len(info) >= 2 and info[0] == "name":
+                        self.var1 = str(info[1])
                 tmp.append(line + '\n')
                 if count == 0:
                     break
@@ -85,7 +93,8 @@ class colvar:
         for line in tmp:
             print("  " * space + "  " + line, file=fconf)
         fconf.close()
-
+        if not self.var1:
+            log("Colvar Error. Please name your colvars.")
 
     def __collective_vari_2(self, name=None, coeff=None, space=0):
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
@@ -105,12 +114,17 @@ class colvar:
                         section += 1
                         continue
                 if section == 2:
+                    if "name" in line:
+                        info = line.split("#")[0].split()
+                        if len(info) >= 2 and info[0] == "name":
+                            self.var2 = str(info[1])
                     tmp.append(line + '\n')   
         fconf = open(self.config_path, 'a')
         for line in tmp:
             print("  " * space + "  " + line, file=fconf)
         fconf.close()
-
+        if not self.var2:
+            log("Colvar Error. Please name your colvars.")
 
     def __rmsd_to_anchor(self, anchor, coeff=None, space=0):
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
@@ -267,9 +281,11 @@ class colvar:
         fconf = open(self.config_path, 'a')
         print("\ncolvar {", file=fconf)
         print("  name neighbor", file=fconf)
-        customFunc = "  customFunction sqrt((phi-(" + str(self.parameter.anchors[self.anchor1-1][0]) + \
-        "))^2 + (psi-(" + str(self.parameter.anchors[self.anchor1-1][1]) + "))^2) - sqrt((phi-(" + str(self.parameter.anchors[self.anchor2-1][0]) \
-        + "))^2 + (psi-(" + str(self.parameter.anchors[self.anchor2-1][1]) + "))^2)"
+        customFunc = "  customFunction sqrt((" + self.var1 + "-(" + \
+            str(self.parameter.anchors[self.anchor1-1][0]) + "))^2 + (" + \
+            self.var2 + "-(" + str(self.parameter.anchors[self.anchor1-1][1]) + \
+            "))^2) - sqrt((" + self.var1 + "-(" + str(self.parameter.anchors[self.anchor2-1][0]) \
+            + "))^2 + (" + self.var2 + "-(" + str(self.parameter.anchors[self.anchor2-1][1]) + "))^2)"
         print(customFunc, file=fconf)
         fconf.close()
     
@@ -289,10 +305,12 @@ class colvar:
                 fconf = open(self.config_path, 'a')
                 print("colvar {", file=fconf)
                 print("  name {}_{}".format(i + 1, self.anchor1), file=fconf)
-                customFunc = "  customFunction sqrt((phi-(" + str(self.parameter.anchors[i][0]) + \
-                "))^2 + (psi-(" + str(self.parameter.anchors[i][1]) + \
-                "))^2) - sqrt((phi-(" + str(self.parameter.anchors[self.anchor1-1][0]) + \
-                "))^2 + (psi-(" + str(self.parameter.anchors[self.anchor1-1][1]) + "))^2)"
+                customFunc = "  customFunction sqrt((" + self.var1 + "-(" + \
+                    str(self.parameter.anchors[i][0]) + "))^2 + (" + self.var2 + \
+                    "-(" + str(self.parameter.anchors[i][1]) + "))^2) - sqrt((" + \
+                    self.var1+ "-(" + str(self.parameter.anchors[self.anchor1-1][0]) + \
+                    "))^2 + (" + self.var2 + "-(" + \
+                    str(self.parameter.anchors[self.anchor1-1][1]) + "))^2)"
                 print(customFunc, file=fconf)
                 colvarList += str(i + 1) + "_" + str(self.anchor1) + " "
                 centers += "0 "
@@ -304,10 +322,12 @@ class colvar:
     
                 print("colvar {", file=fconf)
                 print("  name {}_{}".format(i + 1, self.anchor2), file=fconf)
-                customFunc = "  customFunction sqrt((phi-(" + str(self.parameter.anchors[i][0]) + \
-                "))^2 + (psi-(" + str(self.parameter.anchors[i][1]) + \
-                "))^2) - sqrt((phi-(" + str(self.parameter.anchors[self.anchor2-1][0]) + \
-                "))^2 + (psi-(" + str(self.parameter.anchors[self.anchor2-1][1]) + "))^2)"
+                customFunc = "  customFunction sqrt((" + self.var1 + "-(" + \
+                    str(self.parameter.anchors[i][0]) + "))^2 + (" + self.var2 + \
+                    "-(" + str(self.parameter.anchors[i][1]) + "))^2) - sqrt((" + \
+                    self.var1+ "-(" + str(self.parameter.anchors[self.anchor2-1][0]) + \
+                    "))^2 + (" + self.var2 + "-(" + \
+                    str(self.parameter.anchors[self.anchor2-1][1]) + "))^2)"
                 print(customFunc, file=fconf)
     
                 colvarList += str(i + 1) + "_" + str(self.anchor2) + " "

@@ -1,5 +1,9 @@
 *.DS_Store
 
+~*.docx
+
+changelog.txt
+
 k*.txt
 life_time.txt
 log
