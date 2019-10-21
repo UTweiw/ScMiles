@@ -117,8 +117,12 @@ class run:
         with FileInput(files=newScript, inplace=True) as f:
             for line in f:
                 line = line.strip()
-                info = line.split()
-                
+#                line = line.lower()
+#                info = line.split()
+                info = line.split("#")[0].split()
+                if info == []:
+                    continue
+                                  
                 if "source" in line:
                     if self.parameter.nodes != []:
                         import numpy as np
@@ -160,6 +164,7 @@ class run:
     def __prepare_namd(self, template, a1=None, a2=None, snapshot=None,frame=None, initial=None, initialNum=None):
         from fileinput import FileInput
         from random import randrange as rand 
+        import re
         
         inputdir = template
         
@@ -196,7 +201,10 @@ class run:
         colvar_commands = False
         with open(newNamd, 'r') as f:
             for line in f:
-                info = line.split()
+#                line = line.lower()
+                info = line.split("#")[0].split()
+                if info == []:
+                    continue                
                 if "colvars" in info and "on" in info:
                     colvar_commands = True
                 if "colvarsConfig" in info and colvar_commands == True:
@@ -209,6 +217,8 @@ class run:
                     continue
                 
                 if "run" in info or 'minimize' in info:
+#                    if info[0] == '#':
+#                        continue
                     if colvar_commands == False:
                         tmp.append('colvars on\n')
                         info[0] = 'colvarsConfig'
@@ -276,8 +286,9 @@ class run:
         with FileInput(files=newNamd, inplace=True) as f:
             for line in f:
                 line = line.strip()
+#                line = line.lower()
                 info = line.split()
-                    
+                
                 if "coordinates" in line:
                     info[1] = pardir + '/my_project_input/pdb/' + str(lst[0]) + ".pdb"
                     if snapshot == None and initial == None and self.parameter.milestone_search == 1:
@@ -329,11 +340,16 @@ class run:
                         info[0] = 'temperature'
     
                 if "lreplace" in line:
+#                    line = re.sub(r'[^\w]', ' ', line)
                     if self.parameter.colvarsNum == 0:
                         info[0] = '#set'
                     else:
-                        info[-2] = str(self.parameter.colvarsNum - 1) 
-                
+                        if ']' in info[-1]:
+                            info[-1] = str(self.parameter.colvarsNum - 1) 
+                            info.append(']')
+                        else:
+                            info[-2] = str(self.parameter.colvarsNum - 1) 
+                            
                 if "a111" in line:
                     if snapshot == None:
                         info[2] = str(a1) 

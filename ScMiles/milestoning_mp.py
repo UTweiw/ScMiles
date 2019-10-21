@@ -67,38 +67,33 @@ def K_order(k, t, t_std, index):
         t_std_new[dimY] = t_std[mapping[dimY],[0]]
         for dimX in range(dimension):
             k_new[dimX][dimY] = k[mapping[dimX]][mapping[dimY]]
-#    print(index)
-#    print(index_new)
     return k_new, t_new, t_std_new, index_new
 
 
 def backup(parameter, files: list) -> None:
-    from shutil import move, copy
+    from shutil import copy
     import os
     scriptPath = os.path.dirname(os.path.abspath(__file__)) 
     pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
     time = str(datetime.now()).split('.')[0]
     for file in files:
-        if os.path.isfile(pardir + file): 
-            if not os.path.exists(pardir + '/results'):
-                os.makedirs(pardir + '/results')
-            backup_Folder = pardir + '/results/' + str(parameter.iteration) + '_' + time
+        if os.path.isfile(pardir + '/current' + file): 
+            backup_Folder = pardir + '/' + str(parameter.iteration) + '_' + time
             if not os.path.exists(backup_Folder):
                 os.makedirs(backup_Folder)
-                
-            if file == '/log':
-                copy(pardir + file, backup_Folder + file)
-            else:
-                move(pardir + file, backup_Folder + file)
+            copy(pardir + '/current' + file, backup_Folder + file)
         
 
 def milestoning(parameter):
-    import multiprocessing as mp
+#    import multiprocessing as mp
     import pandas as pd
     ms = milestone()
     scriptPath = os.path.dirname(os.path.abspath(__file__)) 
     data_path = os.path.join(scriptPath, os.pardir) + '/crd'
     outputpath = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
+    outputpath = outputpath + '/current'
+    if not os.path.exists(outputpath):
+        os.makedirs(outputpath)
     ms.read_anchors(parameter.AnchorPath)
     
     files = ['/k.txt', '/k_norm.txt', '/life_time.txt', '/info.txt', '/results.txt', '/list.txt', '/ms_index.npy', '/log', '/committor.txt', '/enhanced_count']
@@ -152,8 +147,8 @@ def milestoning(parameter):
         if start == end or end == [0,0]:
             continue
         
-        if parameter.ignorNewMS and 'MS' + str(start[0]) + '_' + str(start[1]) not in parameter.MS_list:
-            continue
+#        if parameter.ignorNewMS and 'MS' + str(start[0]) + '_' + str(start[1]) not in parameter.MS_list:
+#            continue
         
         if str(start[0]) + '_' + str(start[1]) not in parameter.network.keys():
             parameter.network[str(start[0]) + '_' + str(start[1])] = set()
@@ -174,8 +169,8 @@ def milestoning(parameter):
             continue
         
         name_dest = 'MS' + str(anchor_dest[0][0]) + '_' + str(anchor_dest[0][1])
-        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
-            continue
+#        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
+#            continue
         for i in range(len(anchor_orig)):    
             name_orig = str(anchor_orig[i][0]) + '_' + str(anchor_orig[i][1])
             name_dest = str(anchor_dest[i][0]) + '_' + str(anchor_dest[i][1])
@@ -194,16 +189,6 @@ def milestoning(parameter):
                 new_slice = str(lifetime[i])
             ms.t_hash[name_orig] = new_slice  
     
-
-    
-#    with open(outputpath + '/info.txt', 'w+') as f:
-#        print(ms, file=f)
-#        print(np.shape(ms.k_count), file=f)
-#        print(ms.known, file=f)
-#        print(ms.new, file=f)
-#        print(ms.ms_index, file=f)
-#        print("*****", file=f)
-#        print(ms.t_hash, file=f)
     
     t = np.zeros((len(ms.ms_index), 1))
     t_std = np.zeros((len(ms.ms_index), 1))  
@@ -238,14 +223,6 @@ def milestoning(parameter):
         f1.write('\n'.join([''.join(['{:10.5f}'.format(item) for item in row])for row in k_ave]))   
     np.save(outputpath + '/ms_index.npy', ms.ms_index)   
     
-    parameter.kij = k_ave.copy()
-    parameter.index = []
-    for i in range(len(ms.ms_index)):
-        parameter.index.append(ms.ms_index[i])
-    
-#    with open(outputpath + '/enhanced_count', 'w+') as f1:
-#        for i in enhanced_count:
-#            print(i, enhanced_count[i], file=f1)  
     
     compute(parameter)
     log("Computing finished. Mean first passage time: {:20.7f} fs".format(parameter.MFPT))  
@@ -256,14 +233,6 @@ if __name__ == '__main__':
     from parameters import *
     new = parameters()
     new.initialize()
-#    new.nframe = 1000
-    new.MS_list = ['MS1_2','MS2_3','MS3_4','MS4_5','MS5_6','MS6_7','MS7_8','MS8_9','MS9_10','MS10_11','MS11_12',#[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],\
-               'MS1_12']#[3,8],[4,8],[5,7],[5,8],[7,9],[8,10],[8,11]]
     new.iteration = 1
     milestoning(new)
-#print(ms)
-#print(np.shape(ms.k_count))
-#print(ms.t_hash)
-#print(ms.known)
-#print(ms.new)
-#print(ms.ms_index)
+

@@ -19,6 +19,13 @@ from milestones import *
 from analysis import analysis_kernel
 from traj import *
 
+# run free trajectories without sampling
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-s', '--skipSampling', action='store_true', help='skip sampling',
+                    required=False)
+args = parser.parse_args()  
+status = 1 if args.skipSampling  else 0
 
 # initialize environment
 MFPT_temp = 1
@@ -29,27 +36,24 @@ jobs = run(parameter)
 samples = sampling(parameter, jobs)
 
 # initialize with reading anchor info and identifying milestones 
-parameter.MS_list = milestones(parameter).initialize(status=0)
+parameter.MS_list = milestones(parameter).initialize(status=status)
 
-#initialize iteration number
-parameter.iteration = 0
+##initialize iteration number
+#parameter.iteration = 0
 
 while True:
     free_trajs = traj(parameter, jobs)
     
-#    print(parameter.MS_list)
     # apply harmonic constraints that populate samples at each milestones.
     if parameter.MS_list != parameter.finished_constain:
         samples.constrain_to_ms()   # start to constrain
         time.sleep(60)
-        samples.check_sampling()    # check if the samplings are finished
+        
+    samples.check_sampling()    # check if the samplings are finished
 
     # next iteration; for iteration methods
     if parameter.method == 1:
         parameter.iteration += 1 
-        print("Iteration # {}".format(parameter.iteration))
-        log("Iteration # {}".format(parameter.iteration))
-        free_trajs.iteration_initialize()
     else:
         parameter.iteration = 1 
             

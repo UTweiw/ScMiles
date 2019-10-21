@@ -97,6 +97,6 @@ fullElectFrequency   2
 stepspercycle        20
 
 
-
+# run command
 run	             1000000     
 

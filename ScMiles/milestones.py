@@ -100,7 +100,7 @@ class milestones:
         final_ms = [0, 0]
         # read state file generated at termination point 
         # smallest rmsd indicates new cell #
-        RMSDs, lifetime = self.__read_state(state)
+        RMSDs, lifetime = self.read_state(state)
         final_ms[0] = RMSDs.index(sorted(RMSDs)[0]) + 1
         
         if self.parameter.pbc != []:
@@ -134,6 +134,7 @@ class milestones:
             with open(final_info, 'w+') as f1:
                 print(final_ms[0], final_ms[1], file=f1)    
         time_info = path + '/lifetime.txt'
+        lifetime *= self.parameter.timeFactor
         if not os.path.isfile(time_info):
             with open(time_info, 'w+') as f1:
                 print(lifetime, file=f1)    
@@ -210,7 +211,7 @@ class milestones:
                     MS_list.add('MS' + name)
         return MS_list
 
-    def __read_state(self, path):
+    def read_state(self, path):
         file = open(path, 'r').read()
         time = int(re.findall(r"[-+]?\d*\.\d+|\d+", file)[0])
 #        print(time)

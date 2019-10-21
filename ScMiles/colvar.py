@@ -136,8 +136,8 @@ class colvar:
                     if 'name' in line and name_get == False:
                         line = "  name rmsd" + str(anchor)
                         name_get = True
-                    if 'anchor' in line:
-                        line = line.replace("anchor", '('+str(self.parameter.anchors[anchor-1][0])+')')
+#                    if 'anchor' in line:
+#                        line = line.replace("anchor", '('+str(self.parameter.anchors[anchor-1][0])+')')
                     if 'anchor.x' in line:
                         line = line.replace("anchor.x", '('+str(self.parameter.anchors[anchor-1][0])+')')
                     if 'anchor.y' in line:

@@ -14,7 +14,7 @@ import os
 import pandas as pd
 import numpy as np
 from network_check import pathway
-#yfrom voronoi_plot import voronoi_plot
+#from voronoi_plot import voronoi_plot
 
 __all__ = ['k_average','compute']
 
@@ -51,19 +51,17 @@ def k_error(k_count):
             a = k_count[i,j]
             if i == j or a == 0:
                 continue
-#            print(total,a)
+            if total == a:
+                k[i, j] = 1.0
             b = total - a
             if b > 0: 
                 k[i, j] = np.random.beta(a, b)
         if sum(k[i, :]) != 0:
             k[i, :] = k[i, :] / sum(k[i, :])
-#    for i in range(len(k)):
-#        print(i, k[i])
     return k
 
  
 def t_error(t, t_std):
-#    print(np.abs(np.random.normal(t, t_std, len(t))).tolist())
     return np.abs(np.random.normal(t, t_std, len(t))).tolist()
 
 
@@ -74,11 +72,8 @@ def committor(parameter, k):
     for i in parameter.product_milestone:
         kk[i] = [0 for j in k[i]]
         kk[i][i] = 1.0
-#    print(kk)
     c = np.linalg.matrix_power(kk,1000000000)
     A = np.ones((len(c),1))
-#    print(A)
-#    print(np.matmul(c,A))
     return np.matmul(c,A)
 
 
@@ -86,22 +81,17 @@ def flux(k):
     kk = k.copy()
     kk_trans = np.transpose(kk)
     e_v, e_f = np.linalg.eig(kk_trans)
-#    print(e_v)
-#    print(e_f[:,1])
     idx = np.abs(e_v - 1).argmin()  
     q = [i.real for i in e_f[:, idx]]
     q = np.array(q)
     if np.all(q < 0):
         q = -1 * q
-        
-#    print(idx, q)
     return q
 
 
 def prob(q,t):
     p = np.transpose(q) * np.squeeze(t)
     p_norm = p / np.sum(p)
-#    print(p_norm)
     return p_norm
 
 
@@ -129,7 +119,6 @@ def get_boundary(parameter, ms_index):
             parameter.product_milestone.append(-1)
     else:
         for item in ms_index.values():
-#            print(item)
             if int(parameter.product[0]) in item and int(list(ms_index.keys())[list(ms_index.values()).index(item)]) not in parameter.product_milestone:
                 parameter.product_milestone.append(int(list(ms_index.keys())[list(ms_index.values()).index(item)]))            
 
@@ -169,19 +158,17 @@ def MFPT2(parameter, k, t):
     else:
         parameter.sing = False
         tau = p0 * np.linalg.inv(I - np.mat(k2)) * np.transpose(np.mat(t))
-#    print(np.linalg.inv(I - np.mat(k2)) * np.transpose(np.mat(t)))
     return float(tau)
 
 
 def compute(parameter):
     filePath = os.path.dirname(os.path.abspath(__file__))
     path = os.path.abspath(os.path.join(filePath, os.pardir)) + '/my_project_output'
-
+    path = path + '/current'
     filepath_t = path + '/life_time.txt'
     t_raw = pd.read_fwf(filepath_t, header=1).values
-#    t = (t_raw[0, :]/parameter.timeFactor).tolist()
-#    t_std = (t_raw[1, :]/parameter.timeFactor).tolist()
-#    print(t_raw)
+#    t = (t_raw[0, :]*parameter.timeFactor).tolist()
+#    t_std = (t_raw[1, :]*parameter.timeFactor).tolist()
     t = (t_raw[0, :]).tolist()
     t_std = (t_raw[1, :]).tolist()
     dimension = len(t_raw[0])
@@ -190,7 +177,7 @@ def compute(parameter):
     kc = [[float(j) for j in i] for i in kc_raw[0:dimension,0:dimension].tolist()]
     k = k_average(np.array(kc))
 ######################
-    ms_list = np.load(path + '/ms_index.npy').item()
+    ms_list = np.load(path + '/ms_index.npy', allow_pickle=True).item()
     
     kk = k.copy()
     tt = t.copy()
@@ -199,8 +186,15 @@ def compute(parameter):
     get_boundary(parameter, ms_list)
     
     kk = k_average(np.array(kk))
-    q = flux(kk)
-    parameter.flux = q.copy()
+    
+    kk_cyc = k.copy()
+    for i in parameter.product_milestone:
+        kk_cyc[i] = [0 for j in k[i]]
+        for j in parameter.reactant_milestone:
+            kk_cyc[i][j] = 1.0 / len(parameter.reactant_milestone)   
+    q_cyc = flux(kk_cyc)
+    
+    q = flux(kk)    
     p = prob(q,tt)
     energy = free_energy(p)
     tau1 = MFPT(parameter, kk, tt)
@@ -211,7 +205,7 @@ def compute(parameter):
     MFPT2_samples = []
     energy_err = []
     MFPT_err = []
-    MFPT_err2 = []
+    MFPT_err2 = []    
     
     for i in range(parameter.err_sampling):
         k_err = k_error(np.mat(kc))
@@ -225,14 +219,21 @@ def compute(parameter):
         MFPT_samples.append(MFPT_er)
         MFPT_er2 = MFPT2(parameter, k_err, t_err)
         MFPT2_samples.append(MFPT_er2)
-        
+    
+#    MFPT_samples = np.log10(MFPT_samples)
+#    import matplotlib.pyplot as plt
+#    plt.rcParams.update({'figure.figsize':(7,5), 'figure.dpi':200})
+#    n, bins, patches = plt.hist(MFPT_samples, bins=50)
+#    plt.show()
+#    plt.savefig('MFPT_hist.png')
+    
     for i in range(dimension):        
         energy_err.append(np.std(np.array(energy_samples)[:,i], ddof=1))
     MFPT_err = float(np.std(MFPT_samples, ddof=1))
     MFPT_err2 = float(np.std(MFPT2_samples, ddof=1))
         
     with open(path + '/results.txt', 'w+') as f1:
-        print('{:>4} {:>4} {:>10} {:>8} {:>10} {:>10}'.format('a1','a2','q','p','freeE','freeE_err'),file=f1)
+        print('{:>4} {:>4} {:>10} {:>8} {:>13} {:>10}'.format('a1','a2','q','p','freeE(kT)','freeE_err'),file=f1)
         keyIndex = 0
         for i in range(len(q)):
             while True:
@@ -240,12 +241,12 @@ def compute(parameter):
                     keyIndex += 1
                 else:
                     break
-            print('{:4d} {:4d} {:10.5f} {:8.5f} {:10.5f} {:10.5f}'.format(ms_list[keyIndex][0], ms_list[keyIndex][1], 
+            print('{:4d} {:4d} {:10.5f} {:8.5f} {:13.5f} {:10.5f}'.format(ms_list[keyIndex][0], ms_list[keyIndex][1], 
                   q[i], p[i], energy[i], energy_err[i]), file=f1)
             keyIndex += 1  
         print('\n\n',file=f1)
-        print("MFPT is {:15.8e}, with an error of {:15.8e}, from eigenvalue method.".format(tau1, MFPT_err),file=f1)  
-        print("MFPT is {:15.8e}, with an error of {:15.8e}, from inverse method.".format(tau2, MFPT_err2),file=f1) 
+        print("MFPT is {:15.8e} fs, with an error of {:15.8e}, from eigenvalue method.".format(tau1, MFPT_err),file=f1)  
+        print("MFPT is {:15.8e} fs, with an error of {:15.8e}, from inverse method.".format(tau2, MFPT_err2),file=f1) 
         
     c = committor(parameter, kk)
     m = []
@@ -261,13 +262,16 @@ def compute(parameter):
         parameter.MFPT = 0
         
 #    voronoi_plot(parameter, m, c, energy, ms_list)
+    index = []
+    for i in range(len(ms_list)):
+        index.append(ms_list[i])
 
+    return k, index, q_cyc
 
 if __name__ == '__main__':
     from parameters import *
     new = parameters()
     new.initialize()
     new.iteration = 1
-    from milestones import milestones
     compute(new)
     print('{:e}'.format(new.MFPT))

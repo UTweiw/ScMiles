@@ -22,11 +22,12 @@ class parameters:
                  forceConst=None,
                  trajWidths=None, username=None, tolerance=None, err_sampling=None,
                  initial_traj=None, initialTime=None,
-                 startTraj=None, trajPerLaunch=None, interval=None,
+                 startTraj=None, trajPerLaunch=None, interval=None, freeTraj_walltime=None,
                  nframe=None, structure=None, coordinates=None, finished_constain=None,
                  outputname=None,
                  namd_conf=None,
                  AnchorPath=None, AnchorNum=None,  
+                 new_anchor=None, anchor_dist=None,
                  jobsubmit=None, jobcheck=None,anchors=None,
                  atomNumbers=None, error=None, MFPT=None, kij=None, index=None,
                  flux=None,
@@ -47,6 +48,8 @@ class parameters:
         
         self.current_iteration_time = {} # current iteration time
         
+        self.timeFactor = 1 # fs per step
+        
         self.jobsubmit = jobsubmit    # command for job submission
         
         self.jobcheck = jobcheck    # command for job check 
@@ -59,7 +62,7 @@ class parameters:
         
         self.MS_list = set()    # milestone list
         
-        self.ignorNewMS = True    # ignore new milestones found by free traj
+        self.ignorNewMS = False    # ignore new milestones found by free traj
         
         self.Finished = set()   # milestones that finished free trajs
         
@@ -98,6 +101,10 @@ class parameters:
         self.AnchorPath = AnchorPath   # file path for anchor
         
         self.AnchorNum = AnchorNum     # total number of anchor
+        
+        self.new_anchor = False         # find new anchor
+        
+        self.anchor_dist = 100.0          # new anchor seperation distance
             
         self.bincoordinates = bincoordinates  # coordinates file name
         
@@ -112,6 +119,8 @@ class parameters:
         self.startTraj = startTraj    # initial sampling frame 
         
         self.trajPerLaunch = trajPerLaunch    # number of free trajs to launch each time
+        
+        self.freeTraj_walltime = freeTraj_walltime  # walltime for free trajectories
         
         self.interval = interval    # interval between each frame taken
         
@@ -159,6 +168,8 @@ class parameters:
                 if "method" in info:
                     self.method = int(info[1])
                            
+                if "intitial_iteration" in info:
+                    self.iteration = int(info[1]) - 1
                 if "max_iteration" in info:
                     self.maxIteration = int(info[1])
                 
@@ -203,6 +214,11 @@ class parameters:
                     
                 if "anchorsNum" in line:
                     self.AnchorNum = int(info[1])    
+                if "find_new_anchor" in line:
+                    if str(info[1]).lower() == 'true' or 'yes' or 'on':
+                        self.new_anchor = True
+                if "new_anchor_dist" in line:
+                    self.anchor_dist = float(info[1])         
 #                if "anchorsPath" in line:
 #                    self.AnchorPath = info[1]
                             
@@ -265,6 +281,7 @@ class parameters:
     def initialize(self):
         import pandas as pd
         import os
+        import re
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
         inputfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_input'
         outputfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
@@ -273,14 +290,28 @@ class parameters:
         crdfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/crd'
         if not os.path.exists(crdfolder):
             os.makedirs(crdfolder)
-        outfolder = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_output'
-        if not os.path.exists(outfolder):
-            os.makedirs(outfolder) 
+        if not os.path.exists(outputfolder):
+            os.makedirs(outputfolder) 
+        currentfolder = outputfolder + '/current'
+        if not os.path.exists(currentfolder):
+            os.makedirs(currentfolder)     
+            
+        with open(inputfolder + '/free.namd', 'r') as f:   
+            for line in f:
+                info = line.split("#")[0].split()
+                if "run" in info:
+                    self.freeTraj_walltime = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
+                    break
+                if "timestep" in info:
+                    try: 
+                        self.timeFactor = float(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
+                    except:
+                        continue
             
         from log import log
-        logname = outputfolder + '/log'
+        logname = currentfolder + '/log'
         if os.path.exists(logname):
-            os.remove(logname)
+            os.remove(logname)            
         log("Initialized with {} anchors.".format(self.AnchorNum))
 #        print(self.namd_conf ) 
         
@@ -288,8 +319,8 @@ if __name__ == '__main__':
     new = parameters()
     new.initialize()
 
-#    print(new.timeFactor)
+    print(new.timeFactor)
 #    print(type(new.tolerance))
-    print(new.anchors)
+#    print(new.anchors)
 #    print(type(new.trajPerLaunch))
 #    print(new.reactant_milestone)
