@@ -1,8 +1,7 @@
 
 ########################################
 ########################################
-#Ala-dipeptide running in vaccum
-#1 us, with step 0.5 fs 
+#Ala-dipeptide running in water
 #########################################
 
 structure            /home/weiw/examples/test/my_project_input/Aladipep_sol.psf
@@ -10,9 +9,9 @@ coordinates          /home/weiw/examples/test/my_project_input/Aladipep_sol.pdb
 outputname           Aladipep
 
 #set inputname
-#bincoordinates       /moilgpu/arman/RockClimbing-cyclohexane/02.restart.coor
-#binvelocities        /moilgpu/arman/RockClimbing-cyclohexane/02.restart.vel
-#extendedSystem       /moilgpu/arman/RockClimbing-cyclohexane/02.restart.xsc
+#bincoordinates       /moilgpu/02.restart.coor
+#binvelocities        /moilgpu/02.restart.vel
+#extendedSystem       /moilgpu/02.restart.xsc
 
 seed 12345
 
@@ -34,18 +33,11 @@ switchdist           16
 cutoff               10
 pairlistdist         12
 
-#fixedAtoms    on
-#fixedAtomsForces off
-#fixedAtomsFile  /home/weiw/examples/water4/constrained.pdb
-#fixedAtomsCol   B
-
 cellbasisvector1    25 0 0
 cellbasisvector2    0 25 0
 cellbasisvector3    0 0 25
 
 cellorigin  0 0 0 
-
-
 
 PME                  on
 PMEGridSpacing       1.0
@@ -55,35 +47,19 @@ rigidTolerance       0.00000001
 rigidIterations      100
 useSettle            on
 
-
 # temperature and pressure
 
 set temp        300
 temperature          $temp
-#rescaleTemp      300
-#rescaleFreq      10
-
-#langevin             on
-#langevinTemp         $temp
-#langevinDamping      5
-#useGroupPressure     yes
-#useFlexibleCell      yes
-#useConstantRatio       yes
-#useConstantArea      yes
-#LangevinPiston       on
-#LangevinPistonTarget 1
-#LangevinPistonPeriod 200
-#LangevinPistonDecay  100
-#LangevinPistonTemp   $temp
 
 # output
-outputTiming         2000000
-outputEnergies       2000000
-outputPressure       2000000
+outputTiming         200000
+outputEnergies       200000
+outputPressure       200000
 binaryoutput         yes
 
-DCDfreq              20000
-xstfreq              20000
+DCDfreq              2000
+xstfreq              2000
 DCDUnitCell          yes
 
 restartfreq          2
