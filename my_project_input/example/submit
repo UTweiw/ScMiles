@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH -J name
-#SBATCH -o a.out
-#SBATCH -e a.err
-#SBATCH -N 1
-#SBATCH -n 16
+#$ -N name
+#$ -l source
+#$ -pe make 2
+#$ -S /bin/bash
+#$ -o a.out
+#$ -e a.err
 
 cd path
 
-namd2 +p16 namd > 1.log
+/home/weiw/NAMD/NAMD/namd2 +p2 namd > 1.log 

@@ -378,8 +378,8 @@ class run:
                 print(line)
         
 #        print(filename, self.parameter.namd_conf)
-        if filename == "/sample.namd" and self.parameter.namd_conf == True:
-            namd_conf_mod(inputdir, newNamd, a1)
+#        if filename == "/sample.namd" and self.parameter.namd_conf == True:
+#            namd_conf_mod(inputdir, newNamd, a1)
             
         
 def get_initial_ms(path):
