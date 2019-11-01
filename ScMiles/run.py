@@ -304,14 +304,16 @@ class run:
                     if snapshot != None:
                         info[0] = 'bincoordinates'
                         if self.parameter.iteration == 1:
-                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + str(frame*1000) + '.coor'
+                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
+                                      str(frame*self.parameter.sampling_interval) + '.coor'
                         else:
                             info[1] = self.parameter.outputname + '.coor'
                 
                 if "binvelocities" in line or "binVelocities" in line:
                     if snapshot != None:
                         if self.parameter.iteration == 1:
-                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + str(frame*1000) + '.vel'
+                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
+                                      str(frame*self.parameter.sampling_interval) + '.vel'
                         else:
                             if enhanced == 0:
                                 info[0] = 'binvelocities'
@@ -321,7 +323,8 @@ class run:
                     if snapshot != None:
                         info[0] = 'extendedSystem'
                         if self.parameter.iteration == 1:
-                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + str(frame*1000) + '.xsc'
+                            info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
+                                      str(frame * self.parameter.sampling_interval) + '.xsc'
                         else:
                             info[1] = self.parameter.outputname + '.xsc'
                                 
