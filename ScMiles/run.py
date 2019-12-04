@@ -24,7 +24,6 @@ class run:
         
     def __enter__(self):
         return self
-              
     
     def __exit__(self, exc_type, exc_value, traceback):
         return 
@@ -32,8 +31,8 @@ class run:
     def __repr__(self) -> str:
         return ('Submit jobs.')
 
-
     def submit(self, a1=None, a2=None, snapshot=None, frame=None, initial=None, initialNum=None):
+        '''job submission'''
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
         inputdir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/my_project_input'
         templateScript = inputdir + "/submit"
@@ -47,13 +46,13 @@ class run:
     #    if not os.path.exists(MSpath):
     #        os.makedirs(MSpath)
         
-        if snapshot != None:
+        if snapshot is not None:
             folderPath = MSpath + '/' + str(self.parameter.iteration) + "/" + str(snapshot)
     #        if parameter.iteration >= 1:
     #            get_initial_ms(parameter, folderPath)
             origColvar = scriptPath + "/colvar_free.conf"
             destColvar = folderPath + "/colvar_free.conf"
-        elif initial != None:
+        elif initial is not None:
             pardir = os.path.abspath(os.path.join(scriptPath, os.pardir)) + '/crd/seek'
             origColvar = scriptPath + "/colvar_free.conf"
             destColvar = pardir + "/structure" + str(a1) + "/" + str(initialNum) + "/colvar_free.conf"
@@ -64,18 +63,21 @@ class run:
              
         while True:
             out = subprocess.check_output([self.parameter.jobcheck,'-u', self.parameter.username]).decode("utf-8").split('\n')
-            if len(out) -2 < 999999999:  #allowed number of jobs
+            if len(out) -2 < 999999999:  # allowed number of jobs
                 subprocess.run([self.parameter.jobsubmit,newScript])
                 break
             else:
                 time.sleep(60)
-                
-                
+
     def check(self, a1=None, a2=None, MSname=None, JobName=None):
+        '''check queue to see if all jobs are finished'''
         out = subprocess.check_output([self.parameter.jobcheck,'-u', self.parameter.username]).decode("utf-8").split('\n')
-        if a1 != None and a2 != None: name = 'MS' + str(a1) + '_' + str(a2)
-        if MSname != None: name = MSname
-        if JobName != None: name = JobName
+        if a1 is not None and a2 is not None:
+            name = 'MS' + str(a1) + '_' + str(a2)
+        if MSname is not None:
+            name = MSname
+        if JobName is not None:
+            name = JobName
         job = []
         if self.parameter.jobcheck == 'squeue' and len(out) > 2:
             job.append(list(filter(None, out[1].split(' '))))
@@ -83,14 +85,14 @@ class run:
             job.append(list(filter(None, out[i].split(' '))))
             
         for i in range(len(job)):
-            if MSname != None and job[i][2] == name:
-                return False  #not finished
-            if JobName != None and job[i][2].split('_')[0] == name:
+            if MSname is not None and job[i][2] == name:
+                return False  # not finished
+            if JobName is not None and job[i][2].split('_')[0] == name:
                 return False
-        return True #finished
-
+        return True # finished
     
     def __prepare_script(self, template, a1, a2, snapshot=None, initial=None, initialNum=None):
+        '''mordify job submission file'''
         from fileinput import FileInput
         import os
         filePath = os.path.dirname(os.path.abspath(__file__)) 
@@ -100,10 +102,10 @@ class run:
         name = str(lst[0]) + '_' + str(lst[1])
         MSpath = pardir + '/crd/' + name 
     
-        if snapshot != None:            
+        if snapshot is not None:
             newScriptPath = MSpath + '/' + str(self.parameter.iteration) + "/" + str(snapshot)
             newScript = newScriptPath + "/submit"
-        elif initial != None:
+        elif initial is not None:
             newScriptPath = seekpath + '/structure' + str(a1) + "/" + str(initialNum)
             newScript = newScriptPath + '/submit'
         else:
@@ -118,13 +120,13 @@ class run:
             for line in f:
                 line = line.strip()
 #                line = line.lower()
-#                info = line.split()
-                info = line.split("#")[0].split()
-                if info == []:
+                info = line.split()
+#                 info = line.split("#")[0].split()
+                if not info:
                     continue
                                   
                 if "source" in line:
-                    if self.parameter.nodes != []:
+                    if self.parameter.nodes:
                         import numpy as np
                         rand = np.random.uniform(0,len(self.parameter.nodes),1)
                         info[2] = 'hostname="' + self.parameter.nodes[int(rand)] + '"'
@@ -133,16 +135,16 @@ class run:
                         
                 if "name" in line:
                     place = info.index('name')
-                    if snapshot != None:
+                    if snapshot is not None:
                         info[place] = 'MILES' + '_' + str(a1) + '_' + str(a2) + '_' + str(snapshot)
-                    elif initial != None:
+                    elif initial is not None:
                         info[place] = 'a' + str(a1)
                     else:
                         info[place] = 'MS' + str(a1) + '_' + str(a2) 
                 
-                if snapshot != None:
+                if snapshot is not None:
                     path = MSpath + '/' + str(self.parameter.iteration) + '/' + str(snapshot) 
-                elif initial != None:
+                elif initial is not None:
                     path = seekpath + '/structure' + str(a1) + "/" + str(initialNum)
                 else:
                     path = MSpath 
@@ -152,25 +154,25 @@ class run:
                     info[place] = path
                 if "namd" in line:
                     place = info.index('namd')
-                    if snapshot == None and initial == None:
+                    if snapshot is None and initial is None:
                         info[place] = './sample.namd'
                     else:
                         info[place] = './free.namd'
                 line = " ".join(str(x) for x in info)
                 print(line)
         return newScript     
-                
 
     def __prepare_namd(self, template, a1=None, a2=None, snapshot=None,frame=None, initial=None, initialNum=None):
+        '''modify namd configuration file'''
         from fileinput import FileInput
         from random import randrange as rand 
         import re
         
         inputdir = template
         
-        if snapshot != None:
+        if snapshot is not None:
             template = template + "/free.namd"   
-        elif initial != None:
+        elif initial is not None:
             template = template + "/free.namd"  
         else:
             template = template + "/sample.namd" 
@@ -180,11 +182,11 @@ class run:
      
         lst = sorted([a1, a2])
         name = str(lst[0]) + '_' + str(lst[1])
-        MSpath = pardir + '/crd/' + name if initial == None else pardir + '/crd/seek/structure' + str(a1) 
+        MSpath = pardir + '/crd/' + name if initial is None else pardir + '/crd/seek/structure' + str(a1)
     
-        if snapshot != None:
+        if snapshot is not None:
             filename = "/" + str(self.parameter.iteration) + "/" + str(snapshot) + "/free.namd"    ######### miles
-        elif initial != None:
+        elif initial is not None:
             filename = "/" + str(initialNum) + "/free.namd"
         else:
             filename = "/sample.namd" 
@@ -192,7 +194,8 @@ class run:
         newNamd = MSpath + filename
         copyfile(template, newNamd)
         
-        if snapshot != None and os.path.isfile(MSpath + "/" + str(self.parameter.iteration) + "/" + str(snapshot) + '/enhanced'):
+        if snapshot is not None and os.path.isfile(MSpath + "/" + str(self.parameter.iteration) + "/" +
+                                                   str(snapshot) + '/enhanced'):
             enhanced = 1
         else:
             enhanced = 0
@@ -202,13 +205,14 @@ class run:
         with open(newNamd, 'r') as f:
             for line in f:
 #                line = line.lower()
-                info = line.split("#")[0].split()
+#                 info = line.split("#")[0].split()
+                info = line.split()
                 if info == []:
                     continue                
                 if "colvars" in info and "on" in info:
                     colvar_commands = True
-                if "colvarsConfig" in info and colvar_commands == True:
-                    if initial != None or snapshot != None:
+                if "colvarsConfig" in info and colvar_commands:
+                    if initial is not None or snapshot is not None:
                         info[1] = 'colvar_free.conf'
                     else:
                         info[1] = 'colvar.conf'
@@ -219,17 +223,17 @@ class run:
                 if "run" in info or 'minimize' in info:
 #                    if info[0] == '#':
 #                        continue
-                    if colvar_commands == False:
+                    if not colvar_commands:
                         tmp.append('colvars on\n')
                         info[0] = 'colvarsConfig'
-                        if initial != None or snapshot != None:
+                        if initial is not None or snapshot is not None:
                             info[1] = 'colvar_free.conf\n\n'
                         else:
                             info[1] = 'colvar.conf\n\n'
                         l = " ".join(str(x) for x in info)
                         tmp.append(l)
                         colvar_commands = True
-                    if initial != None:
+                    if initial is not None:
                         with open(file=filePath+'/tclScript_seek.txt') as f_tcl:
                             for l in f_tcl:
                                 if "qsub" in l:
@@ -253,7 +257,7 @@ class run:
                                 else:
                                     tmp.append(l)
                         tmp.append('\n')
-                    if snapshot != None:
+                    if snapshot is not None:
                         with open(file=filePath+'/tclScript_step2.txt') as f_tcl:
                             for l in f_tcl:
                                 if "qsub" in l:
@@ -291,7 +295,7 @@ class run:
                 
                 if "coordinates" in line:
                     info[1] = pardir + '/my_project_input/pdb/' + str(lst[0]) + ".pdb"
-                    if snapshot == None and initial == None and self.parameter.milestone_search == 1:
+                    if snapshot is None and initial is None and self.parameter.milestone_search == 1:
                         info[1] = "./seek.ms.pdb" 
                         
                 if "outputname" in line:
@@ -301,7 +305,7 @@ class run:
                     info[1] = rand(10000000, 99999999)
             
                 if "bincoordinates" in line or "binCoordinates" in line:
-                    if snapshot != None:
+                    if snapshot is not None:
                         info[0] = 'bincoordinates'
                         if self.parameter.iteration == 1:
                             info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
@@ -310,7 +314,7 @@ class run:
                             info[1] = self.parameter.outputname + '.coor'
                 
                 if "binvelocities" in line or "binVelocities" in line:
-                    if snapshot != None:
+                    if snapshot is not None:
                         if self.parameter.iteration == 1:
                             info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
                                       str(frame*self.parameter.sampling_interval) + '.vel'
@@ -320,7 +324,7 @@ class run:
                             info[1] = self.parameter.outputname + '.vel'
             
                 if "extendedSystem" in line or "extendedsystem" in line:
-                    if snapshot != None:
+                    if snapshot is not None:
                         info[0] = 'extendedSystem'
                         if self.parameter.iteration == 1:
                             info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
@@ -329,7 +333,7 @@ class run:
                             info[1] = self.parameter.outputname + '.xsc'
                                 
                 if "restartsave" in line:
-                    if snapshot != None or initial == 'yes':
+                    if snapshot is not None or initial == 'yes':
                         info[1] = "off"
     
                 if "binaryrestart" in line:
@@ -354,7 +358,7 @@ class run:
                             info[-2] = str(self.parameter.colvarsNum - 1) 
                             
                 if "a111" in line:
-                    if snapshot == None:
+                    if snapshot is None:
                         info[2] = str(a1) 
                     else:# snapshot != None:
                         if self.parameter.iteration == 1:
@@ -364,7 +368,7 @@ class run:
                             info[2] = str(get_initial_ms(path_start)[0]) 
                         
                 if "a222" in line:
-                    if snapshot == None:
+                    if snapshot is None:
                         info[2] = str(a2) 
                     else: # snapshot != None:
                         if self.parameter.iteration == 1:
@@ -373,10 +377,9 @@ class run:
                             path_start = MSpath + '/' + str(self.parameter.iteration) + '/' + str(snapshot)
                             info[2] = str(get_initial_ms(path_start)[1]) 
                 
-                if initial != None and "run" in info:
+                if initial is not None and "run" in info:
                     info[1] = str(self.parameter.initialTime * 1000)
-                
-                
+
                 line = " ".join(str(x) for x in info)
                 print(line)
         
@@ -386,13 +389,15 @@ class run:
             
         
 def get_initial_ms(path):
+    '''get initial milestone for each free trajectory based on the folder name'''
     import re
     path_split = path.split("/")
     initial_ms = list(map(int,(re.findall('\d+', path_split[-3]))))
     with open(path + '/start.txt', 'w+') as f1:
         print(initial_ms[0], initial_ms[1], file=f1)    
     return initial_ms
-         
+
+
 if __name__ == '__main__':
     new = parameters()
     jobs = run(new)

@@ -20,7 +20,7 @@ def analysis_kernel(parameter):
     print(info)
     if len(new) != 0:
         parameter.MS_new = (parameter.MS_new | new) - known
-    if parameter.sing == True:
+    if parameter.sing:
         parameter.Finished = set()
     parameter.milestone_search = 0
         

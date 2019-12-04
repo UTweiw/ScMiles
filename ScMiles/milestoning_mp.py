@@ -22,17 +22,15 @@ def del_restarts(parameter, path, times, total_fs: int, freq: int) -> None:
     lst = []
     for time in times:
         lst.append(time // freq)
-#        pardir = os.path.abspath(os.path.join(self.path, os.pardir))
-#        print(lst)
     for i in range(1, total_fs // 100 + 1):
         if i not in lst:
-            name = path + '/' + parameter.outputname +'.' + str(i * freq) + '.coor'
+            name = path + '/' + parameter.outputname + '.' + str(i * freq) + '.coor'
             if os.path.isfile(name):
                 os.remove(name)
-            name = path + '/' + parameter.outputname +'.' + str(i * freq) + '.vel'
+            name = path + '/' + parameter.outputname + '.' + str(i * freq) + '.vel'
             if os.path.isfile(name):
                 os.remove(name)
-            name = path + '/' + parameter.outputname +'.' + str(i * freq) + '.xsc'
+            name = path + '/' + parameter.outputname + '.' + str(i * freq) + '.xsc'
             if os.path.isfile(name):
                 os.remove(name)
 
@@ -59,9 +57,9 @@ def K_order(k, t, t_std, index):
     for i, ms in enumerate(list(index_new.values())):
         mapping.append([k for k,v in index.items() if v == ms][0])
     dimension = len(k)
-    k_new = np.zeros((dimension,dimension)).astype(int)
-    t_new = np.zeros((dimension))
-    t_std_new = np.zeros((dimension))
+    k_new = np.zeros((dimension, dimension)).astype(int)
+    t_new = np.zeros(dimension)
+    t_std_new = np.zeros(dimension)
     for dimY in range(dimension):
         t_new[dimY] = t[mapping[dimY],[0]]
         t_std_new[dimY] = t_std[mapping[dimY],[0]]
@@ -146,10 +144,17 @@ def milestoning(parameter):
         
         if start == end or end == [0,0]:
             continue
-        
-#        if parameter.ignorNewMS and 'MS' + str(start[0]) + '_' + str(start[1]) not in parameter.MS_list:
-#            continue
-        
+
+
+#       ignore new milestones
+        name_orig = 'MS' + str(start[0]) + '_' + str(start[1])
+        if parameter.ignorNewMS and name_orig not in parameter.MS_list:
+            continue
+        name_dest = 'MS' + str(end[0]) + '_' + str(end[1])
+        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
+            continue
+
+
         if str(start[0]) + '_' + str(start[1]) not in parameter.network.keys():
             parameter.network[str(start[0]) + '_' + str(start[1])] = set()
         parameter.network[str(start[0]) + '_' + str(start[1])].add(str(end[0]) + '_' + str(end[1]))
@@ -168,9 +173,7 @@ def milestoning(parameter):
         if len(anchor_dest) == 0:
             continue
         
-        name_dest = 'MS' + str(anchor_dest[0][0]) + '_' + str(anchor_dest[0][1])
-#        if parameter.ignorNewMS and name_dest not in parameter.MS_list:
-#            continue
+
         for i in range(len(anchor_orig)):    
             name_orig = str(anchor_orig[i][0]) + '_' + str(anchor_orig[i][1])
             name_dest = str(anchor_dest[i][0]) + '_' + str(anchor_dest[i][1])
@@ -188,8 +191,7 @@ def milestoning(parameter):
             else:
                 new_slice = str(lifetime[i])
             ms.t_hash[name_orig] = new_slice  
-    
-    
+
     t = np.zeros((len(ms.ms_index), 1))
     t_std = np.zeros((len(ms.ms_index), 1))  
     for i in range(len(t)):
@@ -221,18 +223,18 @@ def milestoning(parameter):
     k_ave = k_average(ms.k_count)    
     with open(outputpath + '/k_norm.txt', 'w+') as f1:
         f1.write('\n'.join([''.join(['{:10.5f}'.format(item) for item in row])for row in k_ave]))   
-    np.save(outputpath + '/ms_index.npy', ms.ms_index)   
-    
+    np.save(outputpath + '/ms_index.npy', ms.ms_index)
     
     compute(parameter)
     log("Computing finished. Mean first passage time: {:20.7f} fs".format(parameter.MFPT))  
     backup(parameter, files)
     return ms, ms.new, ms.known
 
+
 if __name__ == '__main__':
     from parameters import *
     new = parameters()
     new.initialize()
-    new.iteration = 1
+    new.iteration = 3
     milestoning(new)
 

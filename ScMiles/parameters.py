@@ -39,7 +39,7 @@ class parameters:
         
         self.method = 0       # 0 for classic milestoning; 1 for exact milestoning: iteration
         
-        self.maxIteration = 10    # max iteration
+        self.maxIteration = 100    # max iteration
         
         self.network = {}  # network for free trajectories
         
@@ -66,7 +66,7 @@ class parameters:
         self.MS_list = set()    # milestone list
         
         self.ignorNewMS = False    # ignore new milestones found by free traj
-        
+
         self.Finished = set()   # milestones that finished free trajs
         
         self.finished_constain = set()  # milestones that finished sampling
@@ -171,7 +171,7 @@ class parameters:
                 if "method" in info:
                     self.method = int(info[1])
                            
-                if "intitial_iteration" in info:
+                if "initial_iteration" in info:
                     self.iteration = int(info[1]) - 1
                 if "max_iteration" in info:
                     self.maxIteration = int(info[1])
@@ -295,10 +295,13 @@ class parameters:
         currentfolder = outputfolder + '/current'
         if not os.path.exists(currentfolder):
             os.makedirs(currentfolder)     
-            
+        # read initial run time for seek and time step setup
         with open(inputfolder + '/free.namd', 'r') as f:   
             for line in f:
                 info = line.split("#")[0].split()
+                # info = line.split()
+                if len(info) < 1:
+                    continue
                 if "run" in info[0].lower():
                     self.freeTraj_walltime = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     break
@@ -307,26 +310,25 @@ class parameters:
                         self.timeFactor = float(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
                     except:
                         continue
-
+        # read restart frequency to get the name of restart files
+        # such restart files will be used as the initial position for free traj
         with open(inputfolder + '/sample.namd', 'r') as f:
             for line in f:
                 info = line.split("#")[0].split()
+                if len(info) < 1:
+                    continue
                 if "restartfreq" in info[0].lower():
                     self.sampling_interval = int(re.findall(r"[-+]?\d*\.\d+|\d+", info[1])[0])
-
+        # initial log file
         from log import log
         logname = currentfolder + '/log'
         if os.path.exists(logname):
             os.remove(logname)            
         log("Initialized with {} anchors.".format(self.AnchorNum))
 #        print(self.namd_conf ) 
-        
+
+
 if __name__ == '__main__':
     new = parameters()
     new.initialize()
-
     print(new.timeFactor)
-#    print(type(new.tolerance))
-#    print(new.anchors)
-#    print(type(new.trajPerLaunch))
-#    print(new.reactant_milestone)
