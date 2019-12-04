@@ -9,7 +9,9 @@ Running sampling.
 
 """
 
-import time, re
+import time
+import re
+import os
 from colvar import *
 from parameters import *
 from log import *
@@ -17,38 +19,37 @@ from network_check import *
 from log import log
 from run import *
 
+
 class sampling:
     def __init__(self, parameter, jobs):
         self.parameter = parameter
         self.jobs = jobs
-        
-        
+        self.path = os.path.dirname(os.path.abspath(__file__))
+        self.parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
     def __enter__(self):
         return self
-              
     
     def __exit__(self, exc_type, exc_value, traceback):
-        return 
-            
+        return
     
     def __repr__(self) -> str:
         return ('Sampling on milestones.')    
-        
-        
+
     def constrain_to_ms(self):
         import os
         MS_list = self.parameter.MS_list.copy()
         finished = self.parameter.Finished.copy()
+        # rootPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         for name in MS_list:
             if name in finished or name in self.parameter.finished_constain:
                 continue
-            if self.jobs.check(MSname=name) == False:
+            if not self.jobs.check(MSname=name):
                 continue
             lst = re.findall('\d+', name)
             anchor1 = int(lst[0])
             anchor2 = int(lst[1])
-            rootPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            restartsPath = rootPath + '/crd/' + str(anchor1) + '_' + str(anchor2) + '/restarts'
+            restartsPath = self.parent_path + '/crd/' + str(anchor1) + '_' + str(anchor2) + '/restarts'
             if not os.path.exists(restartsPath):
                 constrain = colvar(self.parameter, anchor1, anchor2)
                 constrain.generate()
@@ -56,8 +57,7 @@ class sampling:
                 
         log("{} milestones identified.".format(str(len(MS_list))))             
         log("Sampling on each milestone...")   
-        
-        
+
     def check_sampling(self):
         import re
         from datetime import datetime
@@ -65,7 +65,7 @@ class sampling:
         MS_list = self.parameter.MS_list.copy()
         while True:
             for name in self.parameter.MS_list:
-                if self.jobs.check(MSname=name) == False:
+                if not self.jobs.check(MSname=name):
                     continue
                 elif name in self.parameter.finished_constain:
                     continue
@@ -85,24 +85,23 @@ class sampling:
                 self.move_restart(self.parameter.MS_list)
                 return self.parameter.Finished
             print("Next check in 600 seconds. {}".format(str(datetime.now())))
-            time.sleep(600)   #600 seconds
-        
+            time.sleep(600)   # 600 seconds
 
     def move_restart(self, names):
         import os
         import glob
         from shutil import move
-        rootPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # rootPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         for name in names:
             [anchor1, anchor2] = list(map(int,(re.findall('\d+', name))))
             ms = str(anchor1) + '_' + str(anchor2)
-            filePath = rootPath + '/crd/' + ms
+            filePath = self.parent_path + '/crd/' + ms
             restartFolder = filePath + '/restarts'
             if not os.path.exists(restartFolder):
                 os.makedirs(restartFolder)
-            for ext in ["coor","vel","xsc"]:
+            for ext in ["coor", "vel", "xsc"]:
                 for file in glob.glob(filePath + '/*.' + ext):
-                    move(file,restartFolder)
+                    move(file, restartFolder)
                 
             
 if __name__ == '__main__':

@@ -20,10 +20,12 @@ from shutil import copyfile
 import inspect 
 from itertools import combinations
 import numpy as np
+import math
+
 
 class trajPool: 
-    def __init__(self,dest) -> None:
-        self.__dest__ = list(map(int,re.findall('\d+', dest)))
+    def __init__(self, dest) -> None:
+        self.__dest__ = list(map(int, re.findall('\d+', dest)))
         
     def __enter__(self):
         return self
@@ -41,8 +43,11 @@ class trajPool:
             1. the total number of milestones that have trajectories reached 
             current milestone
             2. a list of these milestones
+        example;
+            milestone 2_3 has trajectories from milestone 1_2 and 3_4
+            return 2, ['1_2', '3_4']
         """
-        attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
+        attributes = inspect.getmembers(self, lambda a: not(inspect.isroutine(a)))
         att = [a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
         lst = []
         for i in range(len(att)):
@@ -51,7 +56,11 @@ class trajPool:
 
     def count_total_traj(self):
         """
-        count how many trajextories reached current milestone
+        count how many trajectories reached current milestone
+
+        example:
+            milestone 2_3 has trajectories from milestone 1_2 and 3_4, 120 trajectories totally.
+            return 120
         """
         total = 0
         attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
@@ -62,7 +71,7 @@ class trajPool:
     
     def count_traj(self, ms):
         """
-        count how many trajextories from milestone 'ms' that reached current milestone
+        return the trajectories from milestone 'ms'
         """
         attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
         att = [a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
@@ -77,8 +86,7 @@ class trajPool:
             kij: K matrix
               
             index: the index of K matrix. i.e. {0:[1,2]...} means 
-                   the first row/column in K associates to milestone 1_2, 
-                   the mileston between anchor 2 and 3. 
+                   the first row/column in K associates to milestone 1_2
                    
             q: flux
             
@@ -90,21 +98,30 @@ class trajPool:
         total_orig, orig_list = self.count_ms() 
         distribution = {}
         distribution_prob = {}   
-#        print(self.__dest__)
-#        print(index)
-        dest_idx = [i for i,a in enumerate(index) if a == self.__dest__][0]
+        # print(self.__dest__)
+        # print(index)
+        dest_idx = [i for i, a in enumerate(index) if a == self.__dest__]
+        if not dest_idx:
+            return 0
+        else:
+            dest_idx = dest_idx[0]
         for orig_ms in orig_list:
-            orig = list(map(int,(re.findall('\d+', orig_ms))))
-            orig_index = [i for i,a in enumerate(index) if a == orig][0]
-            distribution[orig_ms] = (kij[orig_index,dest_idx] * q[orig_index])
-#        print(self.__dest__)
-#        print(distribution)
+            orig = list(map(int, (re.findall('\d+', orig_ms))))
+            orig_index = [i for i, a in enumerate(index) if a == orig][0]
+            if len(orig_list) == 1:
+                distribution[orig_ms] = 1.0
+            else:
+                if math.isnan(q[orig_index]):
+                    distribution[orig_ms] = 0.0
+                else:
+                    distribution[orig_ms] = (kij[orig_index, dest_idx] * np.abs(q[orig_index]))
         if sum(distribution.values()) == 0:
-            print("Not connected. No traj reached {}.".format(self.__dest__))
-            print("Exitting...")
-            log("Not connected. No traj reached {}.".format(self.__dest__))  
+            print("Wrong distribution on {}.".format(self.__dest__))
+            # print("Exiting...")
+            log("Wrong distribution on {}. Maybe due to no trajectory reached or wrong flux on the adjacent milestone"
+                .format(self.__dest__))
         for orig_ms in orig_list:   
-            distribution_prob[orig_ms] =  distribution[orig_ms] / sum(distribution.values())   
+            distribution_prob[orig_ms] = distribution[orig_ms] / sum(distribution.values())
         return distribution_prob
         
 
@@ -113,21 +130,25 @@ class traj:
         self.parameter = parameter
         self.jobs = jobs
         self.pool = {}
-        
 
     def __enter__(self):
         return self
-              
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
-        return 
-            
+        return
     
     def __repr__(self) -> str:
         return ('Free trajectories.')    
-    
-    
+
     def __snapshots(self, MSname):
+        '''
+        param MSname:
+            milestone name
+        return:
+            next frame number
+        example:
+            250 free traj simulations for milestone MSname, return 251 as the next traj number for folder name
+        '''
         lst = re.findall('\d+',MSname)
         name = lst[0] + '_' + lst[1]
         scriptPath = os.path.dirname(os.path.abspath(__file__)) 
@@ -143,7 +164,6 @@ class traj:
                 break
         return next_frame
     
-    
     def check(self):
         '''check running jobs on cluster'''
         while True:
@@ -154,7 +174,6 @@ class traj:
                 return True
             print("Free trajectories are running... Next check in 200 seconds. {}".format(str(datetime.now())))
             time.sleep(200)  
-
 
     def __copy(self, orig, new, restart=1, enhanced=False):
         '''copy restart files for next iteration'''
@@ -175,9 +194,8 @@ class traj:
                     print('This trajectory is from enhancement', file=f)  
             copyfile(oldName, newName)
 
-
     def __iteration_prepare(self, path, final_ms, orig):
-        '''add each trajectory to trajPool based on the endding milestone'''
+        '''add each trajectory to trajPool based on the ending milestone'''
         if final_ms == [0,0]:
             return
         if not os.path.isfile(path + '/' + self.parameter.outputname + '.restart.coor'):
@@ -188,25 +206,20 @@ class traj:
 #        if self.parameter.ignorNewMS and MSname not in self.parameter.MS_list:
 #            return
         self.add_to_trajPool(MSname, MSorig, path)
-#        print('1')
-#        print(globals()[MSname])
-#        print('2')
-        
+
     def iteration_initialize(self):
+        '''for each milestone, initialize trajectories based on distribution.'''
         import pandas as pd
         from compute import compute
 #        print("Iteration # {}".format(self.parameter.iteration))
 #        log("Iteration # {}".format(self.parameter.iteration))
-            
-        '''for each milestone, initialize trajectories based on distribution.'''
-        self.initialize_trajPool()        
-
+        self.initialize_trajPool()
         filePath = os.path.dirname(os.path.abspath(__file__)) 
         pardir = os.path.abspath(os.path.join(filePath, os.pardir))
         
         for MSname in self.parameter.MS_list:
-            name = re.findall('\d+',MSname)[0] + '_' + re.findall('\d+',MSname)[1]
-            path = pardir +  '/crd/' + name + '/' + str(self.parameter.iteration - 1) + '/'
+            name = re.findall('\d+', MSname)[0] + '_' + re.findall('\d+', MSname)[1]
+            path = pardir + '/crd/' + name + '/' + str(self.parameter.iteration - 1) + '/'
             for j in range(self.parameter.trajPerLaunch):
                 traj_path = path + str(j+1)
                 if not os.path.exists(traj_path):
@@ -218,16 +231,17 @@ class traj:
                 final_ms = [int(x) for x in final_ms]   
 #                print(final_ms)
                 self.__iteration_prepare(traj_path, final_ms, name)
-                
-        
+
         kij, index, flux = compute(self.parameter)
         
 #        print(MS10_11)
 #        print(MS10_11.count_traj('MS11_12'))
         for MSname in self.parameter.MS_list:
-            name = re.findall('\d+',MSname)[0] + '_' + re.findall('\d+',MSname)[1]
-            path = pardir +  '/crd/' + name + '/' + str(self.parameter.iteration) + '/'
+            name = re.findall('\d+', MSname)[0] + '_' + re.findall('\d+', MSname)[1]
+            path = pardir + '/crd/' + name + '/' + str(self.parameter.iteration) + '/'
             distribution = globals()[MSname].get_distribution(kij, index, flux)
+            if distribution == 0:
+                continue
             if not os.path.exists(path):
                 os.makedirs(path)
             path = path + 'distribution'
@@ -237,10 +251,12 @@ class traj:
 #            print(distribution)
             total_orig, orig_list = globals()[MSname].count_ms() 
             if total_orig == 0:
-                print("Not connected. No traj reached {}.".format(MSname))
-                print("Exitting...")
-                log("Not connected. No traj reached {}.".format(MSname)) 
-                sys.exit()
+                print("No traj reached {}.".format(MSname))
+                # print("Exitting...")
+                log("No traj reached {}.".format(MSname))
+                log("Skip {} for next iteration.".format(MSname))
+                continue
+                # sys.exit()
             total_traj = 0
 #            print(MSname, globals()[MSname].count_ms())
             for ms in distribution.keys():
@@ -249,10 +265,8 @@ class traj:
                     traj_num = 1
                 if ms == list(distribution.keys())[-1]:
                     traj_num = self.parameter.trajPerLaunch - total_traj
-                    
-#                if total_traj + traj_num > self.parameter.trajPerLaunch:
-#                    traj_num = self.parameter.trajPerLaunch - total_traj
-                
+                if traj_num <= 0:
+                    continue
                 traj_lst = list(np.random.choice(globals()[MSname].count_traj(ms), traj_num))
                 if len(traj_lst)  == 0:
                     with open('error', 'a+') as f:
@@ -292,9 +306,11 @@ class traj:
                   .format(ms, len(traj_lst) - len(continued)), file=f)
     
     def launch(self, joblist=None):
+        '''launch free trajectories'''
         print("Iteration # {}".format(self.parameter.iteration))
         log("Iteration # {}".format(self.parameter.iteration))
-        if self.parameter.method == 1:
+
+        if self.parameter.method == 1 and self.parameter.iteration > 1:
             self.iteration_initialize()
         
         for ms in self.pool:
@@ -305,9 +321,9 @@ class traj:
 
         for name in MS_list:
             [anchor1, anchor2] = list(map(int,(re.findall('\d+', name))))
-            next_frame = 1 if self.parameter.method ==1 else self.__snapshots(name)
+            next_frame = 1 if self.parameter.method == 1 else self.__snapshots(name)
             MSname = str(anchor1) + '_' + str(anchor2)
-            MSpath = pardir +  '/' + MSname
+            MSpath = pardir + '/' + MSname
             if not os.path.exists(MSpath + '/' + str(self.parameter.iteration)):
                 os.makedirs(MSpath + '/' + str(self.parameter.iteration))
 
@@ -329,9 +345,7 @@ class traj:
             print("{} short trajectories started from milestone {}..."\
                   .format(self.parameter.trajPerLaunch, name))
         log("{} short trajectories started from each milestone.".format(self.parameter.trajPerLaunch))
-
         self.check()
-
         count = 0
         for name in MS_list:
             [anchor1, anchor2] = list(map(int,(re.findall('\d+', name))))
@@ -349,19 +363,18 @@ class traj:
 #                    self.__iteration_prepare(path, final_ms, MSname)
         return count / len(MS_list) + self.parameter.startTraj
     
-    
     def add_to_trajPool(self, dest, orig, path):
+        '''add trajectory info to pool'''
         try:
-            getattr(globals()[dest],orig).append(path)
+            getattr(globals()[dest], orig).append(path)
         except:
             setattr(globals()[dest], orig, [path])
-        
-        
+
     def initialize_trajPool(self):
+        '''initialize pool'''
         for ms in self.parameter.MS_list:
             globals()[ms] = trajPool(ms)
-    
-    
+
 #    def fail_traj_restart(self, path):
 #        import subprocess
 #        state_path = path + '/' + self.parameter.outputname + '.colvars.state'
@@ -370,8 +383,7 @@ class traj:
 #            return
 #        subprocess.run([self.parameter.jobsubmit, path + '/submit'])
         
-        
-        
+
 if __name__ == '__main__':
     MS2_3 = trajPool('2_3')
     traj.add_to_trajPool(traj,'MS2_3', '1_2', 'path')

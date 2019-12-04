@@ -31,7 +31,7 @@ class milestone:
         
         self.life_time = life_time if life_time else []
         
-        self.k_count = [] #np.array([[]]).astype(int)
+        self.k_count = []   # np.array([[]]).astype(int)
         
         self.t_hash = {}
 
@@ -88,7 +88,7 @@ class milestone:
     
     def get_index(self, anchor1: int, anchor2: int) -> int:
         lst = sorted([anchor1, anchor2])
-        return [k for k,v in self.ms_index.items() if v == lst][0]
+        return [k for k, v in self.ms_index.items() if v == lst][0]
     
     def expand(self):
         import numpy as np

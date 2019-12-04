@@ -10,6 +10,7 @@ This subroutine writes running informations to log file.
 
 __all__ = ['log']
 
+
 def log(msg):
     import os
     from datetime import datetime
@@ -18,6 +19,7 @@ def log(msg):
     with open(outfolder+'/log', 'a+') as f1:
         loginfo = str(datetime.now()).split('.')[0] + "    " + msg
         print(loginfo, file=f1)
-         
+
+
 if __name__ == '__main__':
     log('test')

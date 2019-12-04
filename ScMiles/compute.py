@@ -18,12 +18,14 @@ from network_check import pathway
 
 __all__ = ['k_average','compute']
 
-def find_ms_index(ms,ms_index):
+
+def find_ms_index(ms, ms_index):
     ms = sorted(ms)
     return(int(list(ms_index.keys())[list(ms_index.values()).index(ms)]))
 
 
 def get_ms_of_cell(cell, ms_index):
+    '''if reactant/product is a cell, return all milestones associated with this cell'''
     ms_of_cell = []
     for item in ms_index.values():
         if int(cell) in item:
@@ -32,6 +34,7 @@ def get_ms_of_cell(cell, ms_index):
 
 
 def k_average(k_count):
+    '''convert count matrix to probability matrix'''
     dim = len(k_count)
     k_ave = np.zeros((dim, dim))
     for i in range(dim):
@@ -43,6 +46,7 @@ def k_average(k_count):
 
 
 def k_error(k_count):
+    '''return a new random k based on beta function'''
     dim = len(k_count)
     k = np.zeros((dim, dim))
     for i in range(dim):
@@ -62,10 +66,12 @@ def k_error(k_count):
 
  
 def t_error(t, t_std):
+    '''return a new set of life time based on the std'''
     return np.abs(np.random.normal(t, t_std, len(t))).tolist()
 
 
 def committor(parameter, k):
+    '''committor function'''
     kk = k.copy()
     for i in parameter.reactant_milestone:
         kk[i] = [0 for j in k[i]]
@@ -78,6 +84,7 @@ def committor(parameter, k):
 
 
 def flux(k):
+    '''flux calculation'''
     kk = k.copy()
     kk_trans = np.transpose(kk)
     e_v, e_f = np.linalg.eig(kk_trans)
@@ -89,17 +96,28 @@ def flux(k):
     return q
 
 
-def prob(q,t):
+def prob(q, t):
+    '''probability calculation'''
     p = np.transpose(q) * np.squeeze(t)
     p_norm = p / np.sum(p)
     return p_norm
 
 
 def free_energy(p):
+    '''free energy from probability'''
     return -1.0 * np.log(p)
     
 
 def get_boundary(parameter, ms_index):
+    '''
+    get the index number for reactant and product state
+
+    If a K matrix is like this, reactant is 1_2, this function will return 0 as the first row/column indicates 1_2
+    1_2 2_3 3_4
+      0   1   0
+    0.5   0 0.5
+      0   1   0
+    '''
     if len(parameter.reactant) == 2:
         bc1 = sorted(parameter.reactant)
         if bc1 in ms_index.values():
@@ -108,7 +126,8 @@ def get_boundary(parameter, ms_index):
             parameter.reactant_milestone.append(-1)
     else:
         for item in ms_index.values():
-            if int(parameter.reactant[0]) in item and int(list(ms_index.keys())[list(ms_index.values()).index(item)]) not in parameter.reactant_milestone:
+            if int(parameter.reactant[0]) in item and int(list(ms_index.keys())[list(ms_index.values()).index(item)]) \
+                    not in parameter.reactant_milestone:
                 parameter.reactant_milestone.append(int(list(ms_index.keys())[list(ms_index.values()).index(item)]))
             
     if len(parameter.product) == 2:
@@ -119,11 +138,13 @@ def get_boundary(parameter, ms_index):
             parameter.product_milestone.append(-1)
     else:
         for item in ms_index.values():
-            if int(parameter.product[0]) in item and int(list(ms_index.keys())[list(ms_index.values()).index(item)]) not in parameter.product_milestone:
+            if int(parameter.product[0]) in item and int(list(ms_index.keys())[list(ms_index.values()).index(item)]) \
+                    not in parameter.product_milestone:
                 parameter.product_milestone.append(int(list(ms_index.keys())[list(ms_index.values()).index(item)]))            
 
 
 def MFPT(parameter, kk, t):
+    '''MFPT based on flux'''
     k = kk.copy()
     for i in parameter.product_milestone:
         k[i] = [0 for j in k[i]]
@@ -138,6 +159,7 @@ def MFPT(parameter, kk, t):
     
 
 def MFPT2(parameter, k, t):
+    '''MFPT based on inverse of K'''
     dim = len(k)
     I = np.identity(dim)
     k2 = k.copy()
@@ -167,16 +189,13 @@ def compute(parameter):
     path = path + '/current'
     filepath_t = path + '/life_time.txt'
     t_raw = pd.read_fwf(filepath_t, header=1).values
-#    t = (t_raw[0, :]*parameter.timeFactor).tolist()
-#    t_std = (t_raw[1, :]*parameter.timeFactor).tolist()
     t = (t_raw[0, :]).tolist()
     t_std = (t_raw[1, :]).tolist()
     dimension = len(t_raw[0])
-
     kc_raw = pd.read_fwf(path + '/k.txt', header=1).values
     kc = [[float(j) for j in i] for i in kc_raw[0:dimension,0:dimension].tolist()]
     k = k_average(np.array(kc))
-######################
+
     ms_list = np.load(path + '/ms_index.npy', allow_pickle=True).item()
     
     kk = k.copy()
@@ -233,7 +252,7 @@ def compute(parameter):
     MFPT_err2 = float(np.std(MFPT2_samples, ddof=1))
         
     with open(path + '/results.txt', 'w+') as f1:
-        print('{:>4} {:>4} {:>10} {:>8} {:>13} {:>10}'.format('a1','a2','q','p','freeE(kT)','freeE_err'),file=f1)
+        print('{:>4} {:>4} {:>10} {:>8} {:>13} {:>10}'.format('a1', 'a2', 'q', 'p', 'freeE(kT)', 'freeE_err'),file=f1)
         keyIndex = 0
         for i in range(len(q)):
             while True:
@@ -256,7 +275,7 @@ def compute(parameter):
         print('\n'.join([''.join(['{:>15}'.format(str(item)) for item in m])]),file=f1)
         print('\n'.join([''.join(['{:15.8f}'.format(item) for item in np.squeeze(c)])]),file=f1)
        
-    if parameter.sing == False:
+    if not parameter.sing:
         parameter.MFPT = tau1
     else:
         parameter.MFPT = 0
@@ -265,8 +284,8 @@ def compute(parameter):
     index = []
     for i in range(len(ms_list)):
         index.append(ms_list[i])
+    return k, index, q # q_cyc
 
-    return k, index, q_cyc
 
 if __name__ == '__main__':
     from parameters import *

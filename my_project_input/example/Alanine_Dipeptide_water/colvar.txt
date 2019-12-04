@@ -1,0 +1,22 @@
+dihedral {
+  name psi
+  group1 atomNumbers 7
+  group2 atomNumbers 9
+  group3 atomNumbers 15
+  group4 atomNumbers 17
+}
+
+
+
+
+colvar {
+  name rmsd
+  customFunction abs(psi - anchor.x)
+  dihedral {
+    name psi
+    group1 atomNumbers 7
+    group2 atomNumbers 9
+    group3 atomNumbers 15
+    group4 atomNumbers 17
+  }
+}

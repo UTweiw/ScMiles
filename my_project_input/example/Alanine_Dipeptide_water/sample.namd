@@ -1,0 +1,79 @@
+########################################
+########################################
+#Ala-dipeptide running in water
+#########################################
+
+structure            /home/weiw/examples/test/my_project_input/Aladipep_sol.psf
+coordinates          /home/weiw/examples/test/my_project_input/Aladipep_sol.pdb
+outputname           Aladipep
+
+#set inputname
+#bincoordinates       /moilgpu/02.restart.coor
+#binvelocities        /moilgpu/02.restart.vel
+#extendedSystem       /moilgpu/02.restart.xsc
+
+seed 12345
+
+firsttimestep        0
+wrapWater            on
+wrapAll              on
+wrapNearest          off
+
+# force field.
+paraTypeCharmm       on
+
+parameters   /home/weiw/examples/test/my_project_input/par_all22_prot_nocmap.prm
+parameters   /home/weiw/examples/test/my_project_input/toppar_water_ions.rtf 
+
+exclude              scaled1-4
+1-4scaling           1.0
+switching            off
+switchdist           16
+cutoff               10
+pairlistdist         12
+
+cellbasisvector1    25 0 0
+cellbasisvector2    0 25 0
+cellbasisvector3    0 0 25
+
+cellorigin  0 0 0 
+
+PME                  on
+PMEGridSpacing       1.0
+
+rigidBonds           all
+rigidTolerance       0.00000001
+rigidIterations      100
+useSettle            on
+
+# temperature and pressure
+
+set temp        300
+temperature          $temp
+
+langevin             on
+langevinTemp         $temp
+langevinDamping      5
+
+# output
+outputTiming         200000
+outputEnergies       200000
+outputPressure       200000
+binaryoutput         yes
+
+DCDfreq              2000
+xstfreq              2000
+DCDUnitCell          yes
+
+restartfreq          1000
+restartsave          yes
+binaryrestart        yes
+
+timestep             1.0
+nonbondedFreq        1
+fullElectFrequency   2
+stepspercycle        20
+
+minimize             1000
+run                  200000
+

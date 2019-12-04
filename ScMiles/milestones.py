@@ -19,6 +19,7 @@ from log import log
 from parameters import *
 from network_check import *
 
+
 class milestones: 
 
     def __init__(self, parameter) -> None:
@@ -34,7 +35,6 @@ class milestones:
         return ('miletstones details.'
                 .format(self.anchor_orig, self.anchor_dest, self.lifetime))
 
-
     def __get_next_frame_num(self, struPath):
         next_frame = 1
         while True:
@@ -48,7 +48,6 @@ class milestones:
     def __traj_from_anchors(self, anchor, initialNum):
         colvar(self.parameter, free='yes', initial='yes').generate()      
         run(self.parameter).submit(a1=anchor, a2=999, initial='yes', initialNum=initialNum)
-        
 
     def initialize(self, status=0):
         MS_list = set()
@@ -56,7 +55,7 @@ class milestones:
             for i in range(1, self.parameter.AnchorNum):
                 name = 'MS' + str(i) + '_' + str(i + 1)
                 MS_list.add(name)
-            if self.parameter.pbc != []:
+            if self.parameter.pbc:
                 name = 'MS' + str(self.parameter.pbc[0]) + '_' + str(self.parameter.pbc[1])
                 MS_list.add(name)
             return MS_list
@@ -66,16 +65,15 @@ class milestones:
             return MS_list
         else:
             while True:    
-            #    # free runs from each anchors, markdown once it reaches another cell (i.e. closer to another anchor ). 
+            #   free runs from each anchors, markdown once it reaches another cell (i.e. closer to another anchor ).
                 self.__seek_milestones()
                 MS_list = self.__read_milestone_folder()
-            #    # check if reactant and product are connected.
+            #    check if reactant and product are connected.
                 if network_check(self.parameter, MS_list=MS_list) == True:
                     break
             # read folders to get the milestones list 
             MS_list = self.__read_milestone_folder()
             return MS_list
-    
 
     def get_initial_ms(self, path):
         path_split = path.split("/")
@@ -91,7 +89,6 @@ class milestones:
         with open(path + '/start.txt', 'w+') as f1:
             print(initial_ms[0], initial_ms[1], file=f1)    
         return initial_ms
-        
     
     def get_final_ms(self, path):
         state = path + "/stop.colvars.state"
@@ -103,7 +100,7 @@ class milestones:
         RMSDs, lifetime = self.read_state(state)
         final_ms[0] = RMSDs.index(sorted(RMSDs)[0]) + 1
         
-        if self.parameter.pbc != []:
+        if self.parameter.pbc:
             if final_ms[0] == self.parameter.AnchorNum or final_ms[0] == 1:
                 # open traj file to read the very last output
                 # smallest rmsd indicates previous cell #
@@ -139,8 +136,7 @@ class milestones:
             with open(time_info, 'w+') as f1:
                 print(lifetime, file=f1)    
         return lifetime, final_ms
- 
-    
+
     def __seek_milestones(self):
         from shutil import copy
         milestones = set()
@@ -161,13 +157,13 @@ class milestones:
         while True:
             for i in range(1, self.parameter.AnchorNum + 1):
                 MSname = 'a' + str(i)
-                if run(self.parameter).check(MSname=MSname) == False:
+                if not run(self.parameter).check(MSname=MSname):
                     continue
                 elif MSname in finished:
                     continue
                 else:
                     finished.append(MSname)
-            if (len(finished) == self.parameter.AnchorNum):
+            if len(finished) == self.parameter.AnchorNum:
                 break
             time.sleep(60)
         
@@ -198,7 +194,6 @@ class milestones:
 
         log("{} milestomes have been identified.".format(len(milestones)))  
         return milestones  
-            
 
     def __read_milestone_folder(self):
         filePath = os.path.dirname(os.path.abspath(__file__)) 

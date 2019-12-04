@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--skipSampling', action='store_true', help='skip sampling',
                     required=False)
 args = parser.parse_args()  
-status = 1 if args.skipSampling  else 0
+status = 1 if args.skipSampling else 0
 
 # initialize environment
 MFPT_temp = 1
@@ -38,8 +38,8 @@ samples = sampling(parameter, jobs)
 # initialize with reading anchor info and identifying milestones 
 parameter.MS_list = milestones(parameter).initialize(status=status)
 
-##initialize iteration number
-#parameter.iteration = 0
+# initialize iteration number
+# parameter.iteration = 0
 
 while True:
     free_trajs = traj(parameter, jobs)
@@ -57,7 +57,7 @@ while True:
     else:
         parameter.iteration = 1 
             
-    # lauch free runs from the samples 
+    # lauch free runs from the samples
     current_snapshot = free_trajs.launch()
     
     # compute kernel, flux, probability, life time of each milstone, and MFPT as well
@@ -77,14 +77,15 @@ while True:
 #        continue
     
     # break if all the snapshots have been used
-    if current_snapshot >= parameter.nframe:
+    if parameter.method == 0 and current_snapshot >= parameter.nframe:
+        log("All the snapshots have been used...")
         break
     
     # break if reach max iteration
     if parameter.iteration >= parameter.maxIteration:
+        log("Reached max iteration...")
         break
 
-        
     # if no results
     elif np.isnan(parameter.MFPT) or parameter.MFPT < 0:
         log("Preparing for more free trajectories...")
@@ -104,6 +105,7 @@ while True:
         print("Previous MFPT: {}".format(MFPT_temp))
         print("Current MFPT: {}".format(parameter.MFPT))
         MFPT_converged = True
+        log("MFPT converged")
         break
 
 # Double check 
