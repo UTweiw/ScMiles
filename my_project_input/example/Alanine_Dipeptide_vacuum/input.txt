@@ -3,6 +3,9 @@ outputname Aladipep
 # method: 0 -- classic milestoning; 1 -- exaxt milestoning
 method 1
 
+# NVT for free trajectories
+NVT on
+
 initial_iteration 1
 max_iteration 100
 

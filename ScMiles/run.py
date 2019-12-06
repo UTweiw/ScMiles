@@ -315,12 +315,16 @@ class run:
                 
                 if "binvelocities" in line or "binVelocities" in line:
                     if snapshot is not None:
+                        info[0] = 'binvelocities'
                         if self.parameter.iteration == 1:
                             info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
                                       str(frame*self.parameter.sampling_interval) + '.vel'
                         else:
-                            if enhanced == 0:
-                                info[0] = 'binvelocities'
+                            if not self.parameter.NVT:
+                                if enhanced == 0:
+                                    info[0] = 'binvelocities'
+                                else:
+                                    info[0] = '#binvelocities'
                             info[1] = self.parameter.outputname + '.vel'
             
                 if "extendedSystem" in line or "extendedsystem" in line:
@@ -343,9 +347,17 @@ class run:
                 if "temperature" in line and "pressure" not in line:
                     if self.parameter.iteration > 1:
                         info[0] = '#temperature'
-                    if enhanced == 1:
+                    else:
                         info[0] = 'temperature'
-    
+                    if initial:
+                        info[0] = 'temperature'
+                    if not self.parameter.NVT:
+                        if enhanced == 1:
+                            info[0] = 'temperature'
+
+                # if "langevin" in line and self.parameter.nve and snapshot is not None::
+                #     info[0] = '#'
+
                 if "lreplace" in line:
 #                    line = re.sub(r'[^\w]', ' ', line)
                     if self.parameter.colvarsNum == 0:
