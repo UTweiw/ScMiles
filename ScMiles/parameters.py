@@ -11,7 +11,7 @@ A class that stores all of the information from input
 
 class parameters:
     def __init__(self, MS_list=None, Finished=None, MS_new=None, 
-                 ignorNewMS=None, coor=None,
+                 ignorNewMS=None, coor=None, NVT=None
                  nodes=None, timeFactor=None, current_iteration_time=None,
                  sampling_interval=None,
                  maxIteration=None, network=None,
@@ -73,7 +73,9 @@ class parameters:
         
         self.MS_new = set()    # new milestone reached
         
-        self.error = error     # 
+        self.error = error     #
+
+        self.NVT = False            # NVT for free trajectories
         
         self.boundary = [-1, -1]     # milestone number for reactant and product
         
@@ -190,7 +192,10 @@ class parameters:
                     self.coordinates = info[1]
                 if "outputname" in line:
                     self.outputname = info[1]
-                 
+                if "NVT" in line:
+                    if str(info[1]).lower() == 'true' or 'yes' or 'on':
+                    self.NVT = True
+
                 if "time_step" in line:
                     self.timeFactor = float(info[1])    
                     
