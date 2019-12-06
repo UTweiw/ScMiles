@@ -317,6 +317,7 @@ class run:
                     if snapshot is not None:
                         info[0] = 'binvelocities'
                         if self.parameter.iteration == 1:
+                            info[0] = '#binvelocities'
                             info[1] = '../../restarts/' + self.parameter.outputname + '.' + \
                                       str(frame*self.parameter.sampling_interval) + '.vel'
                         else:
