@@ -5,7 +5,7 @@ outputname Aladipep
 method 1
 
 # iteration
-intitial_iteration 1
+initial_iteration 1
 max_iteration 100
 
 # milestoneSearch: 0 -- traverse; 1 -- seek
